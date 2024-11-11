@@ -126,13 +126,23 @@ $username = get_username();
 
 <script>
     function validate(form) {
+        document.getElementById("flash").innerHTML = "";
         let pw = form.newPassword.value;
         let con = form.confirmPassword.value;
         let isValid = true;
-        //TODO add other client side validation....
-
-        //example of using flash via javascript
-        //find the flash container, create a new element, appendChild
+        
+        if (!pw) {
+            flash("Password must not be empty", "danger");
+            isValid = false;
+        }
+        if (pw.length < 8) {
+            flash("Password too short, must be at least 8 characters", "danger");
+            isValid = false;
+        }
+        if (!con) {
+            flash("Confirm password must not be empty", "danger");
+            isValid = false;
+        }
         if (pw !== con) {
             flash("Password and Confrim password must match", "warning");
             isValid = false;

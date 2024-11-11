@@ -14,12 +14,26 @@ require(__DIR__ . "/../../partials/nav.php");
 </form>
 <script>
     function validate(form) {
-        //TODO 1: implement JavaScript validation
-        //ensure it returns false for an error and true for success
-
-        //TODO update clientside validation to check if it should
-        //valid email or username
-        return true;
+        document.getElementById("flash").innerHTML = "";
+        let email = form.email.value;
+        let pw = form.pw.value;
+        let isValid = true;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const usernamePattern = /^[a-zA-Z0-9_-]{3,30}$/;
+        
+        if (!email) {
+            flash("Email/Username test not be empty");
+            isValid = false;
+        }
+        if (!emailPattern.test(email) && !usernamePattern.test(email)) {
+            flash("Invalid email/username");
+            isValid = false;
+        }
+        if (pw.length < 8) {
+            flash("Password too short, must be at least 8 characters");
+            isValid = false;
+        }
+        return isValid;
     }
 </script>
 <?php

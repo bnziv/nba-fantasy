@@ -23,10 +23,44 @@ reset_session();
 </form>
 <script>
     function validate(form) {
-        //TODO 1: implement JavaScript validation
-        //ensure it returns false for an error and true for success
+        document.getElementById("flash").innerHTML = "";
+        let isValid = true;
+        let email = form.email.value.trim();
+        let username = form.username.value.trim();
+        let password = form.password.value;
+        let confirm = form.confirm.value;
 
-        return true;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            flash("Email must not be empty", "danger");
+            isValid = false;
+        }
+        if (!emailPattern.test(email)) {
+            flash("Invalid email address", "danger");
+            isValid = false;
+        }
+        const usernamePattern = /^[a-zA-Z0-9_-]{3,30}$/;
+        if (!usernamePattern.test(username)) {
+            flash("Username must contain 3-30 characters (a-z, 0-9, _, -)", "danger");
+            isValid = false;
+        }
+        if (!password) {
+            flash("Password must not be empty", "danger");
+            isValid = false;
+        }
+        if (password.length < 8) {
+            flash("Password too short, must be at least 8 characters", "danger");
+            isValid = false;
+        }
+        if (!confirm) {
+            flash("Confirm password must not be empty", "danger");
+            isValid = false;
+        }
+        if (password !== confirm) {
+            flash("Passwords must match", "danger");
+            isValid = false;
+        }
+        return isValid;
     }
 </script>
 <?php
