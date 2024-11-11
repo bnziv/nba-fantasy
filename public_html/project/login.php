@@ -22,7 +22,7 @@ require(__DIR__ . "/../../partials/nav.php");
         const usernamePattern = /^[a-zA-Z0-9_-]{3,30}$/;
         
         if (!email) {
-            flash("Email/Username test not be empty");
+            flash("Email/Username not be empty");
             isValid = false;
         }
         if (!emailPattern.test(email) && !usernamePattern.test(email)) {
