@@ -70,9 +70,7 @@ if (isset($_POST["email"]) && isset($_POST["password"]) && isset($_POST["confirm
         flash("Password too short", "danger");
         $hasError = true;
     }
-    if (
-        strlen($password) > 0 && $password !== $confirm
-    ) {
+    if (strlen($password) > 0 && $password !== $confirm) {
         flash("Passwords must match", "danger");
         $hasError = true;
     }
