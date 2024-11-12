@@ -2,7 +2,7 @@
 require_once(__DIR__ . "/../../partials/nav.php");
 //bv249 11/11
 if (!is_logged_in(true)) {
-    flash("You must be logged in to view this page", "danger");
+    flash("You must be logged in to view this page", "warning");
     die(header("Location: login.php"));
 }
 ?>
