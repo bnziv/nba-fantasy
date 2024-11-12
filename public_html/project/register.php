@@ -40,6 +40,10 @@ reset_session();
             isValid = false;
         }
         const usernamePattern = /^[a-zA-Z0-9_-]{3,30}$/;
+        if (!username) {
+            flash("Username must not be empty", "danger");
+            isValid = false;
+        }
         if (!usernamePattern.test(username)) {
             flash("Username must contain 3-30 characters (a-z, 0-9, _, -)", "danger");
             isValid = false;

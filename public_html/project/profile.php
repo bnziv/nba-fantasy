@@ -131,24 +131,33 @@ $username = get_username();
 <script>
     function validate(form) {
         document.getElementById("flash").innerHTML = "";
+        let email = form.email.value;
+        let username = form.username.value;
         let pw = form.newPassword.value;
         let con = form.confirmPassword.value;
         let isValid = true;
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            flash("Email must not be empty", "danger");
+            isValid = false;
+        }
+        if (!emailPattern.test(email)) {
+            flash("Invalid email address", "danger");
+            isValid = false;
+        }
+        const usernamePattern = /^[a-zA-Z0-9_-]{3,30}$/;
+        if (!username) {
+            flash("Username must not be empty", "danger");
+            isValid = false;
+        }
+        if (!usernamePattern.test(username)) {
+            flash("Username must contain 3-30 characters (a-z, 0-9, _, -)", "danger");
+            isValid = false;
+        }
         
-        if (!pw) {
-            flash("Password must not be empty", "danger");
-            isValid = false;
-        }
-        if (pw.length < 8) {
-            flash("Password too short, must be at least 8 characters", "danger");
-            isValid = false;
-        }
-        if (!con) {
-            flash("Confirm password must not be empty", "danger");
-            isValid = false;
-        }
         if (pw !== con) {
-            flash("Password and Confrim password must match", "warning");
+            flash("Password and Confirm password must match", "warning");
             isValid = false;
         }
         return isValid;
