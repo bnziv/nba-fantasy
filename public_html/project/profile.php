@@ -1,6 +1,10 @@
 <?php
 require_once(__DIR__ . "/../../partials/nav.php");
-is_logged_in(true);
+//bv249 11/11
+if (!is_logged_in(true)) {
+    flash("You must be logged in to view this page", "danger");
+    die(header("Location: login.php"));
+}
 ?>
 <?php
 if (isset($_POST["save"])) {

@@ -56,7 +56,7 @@ reset_session();
             flash("Confirm password must not be empty", "danger");
             isValid = false;
         }
-        if (password !== confirm) {
+        if (password.length > 0 && password !== confirm) {
             flash("Passwords must match", "danger");
             isValid = false;
         }

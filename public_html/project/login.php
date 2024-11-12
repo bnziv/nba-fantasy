@@ -50,13 +50,8 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
     }
     if (str_contains($email, "@")) {
         //sanitize
-        //$email = filter_var($email, FILTER_SANITIZE_EMAIL);
         $email = sanitize_email($email);
         //validate
-        /*if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            flash("Invalid email address");
-            $hasError = true;
-        }*/
         if (!is_valid_email($email)) {
             flash("Invalid email address");
             $hasError = true;
@@ -106,10 +101,10 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
                         flash("Welcome, " . get_username());
                         die(header("Location: home.php"));
                     } else {
-                        flash("Invalid password");
+                        flash("Invalid password for account");
                     }
                 } else {
-                    flash("Email not found");
+                    flash("Account not found");
                 }
             }
         } catch (Exception $e) {
