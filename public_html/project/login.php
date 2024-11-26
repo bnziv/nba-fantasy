@@ -1,17 +1,19 @@
 <?php
 require(__DIR__ . "/../../partials/nav.php");
 ?>
-<form onsubmit="return validate(this)" method="POST">
-    <div>
-        <label for="email">Email/Username</label>
-        <input type="text" name="email" required />
-    </div>
-    <div>
-        <label for="pw">Password</label>
-        <input type="password" id="pw" name="password" required minlength="8" />
-    </div>
-    <input type="submit" value="Login" />
-</form>
+<div class="container-fluid">
+    <form onsubmit="return validate(this)" method="POST">
+        <div class="mb-3">
+            <label class="form-label" for="email">Email/Username</label>
+            <input type="text" name="email" required class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="pw">Password</label>
+            <input type="password" id="pw" name="password" required minlength="8" class="form-control"/>
+        </div>
+        <input type="submit" value="Login" class="btn btn-primary" />
+    </form>
+</div>
 <script>
     function validate(form) {
         document.getElementById("flash").innerHTML = "";
