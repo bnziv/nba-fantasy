@@ -45,6 +45,7 @@ try {
 
 //search for user by username
 $users = [];
+$username = "";
 if (isset($_POST["username"])) {
     $username = se($_POST, "username", "", false);
     if (!empty($username)) {
@@ -68,16 +69,12 @@ if (isset($_POST["username"])) {
 
 
 ?>
-<h1>Assign Roles</h1>
-<div class="container-fluid">
+<div class="container-fluid">   
+    <h1>Assign Roles</h1>
     <form method="POST">
-        <div class="mb-3">
-            <input type="search" name="username" placeholder="Username search" class="form-control"/>
-            <input type="submit" value="Search" class="btn btn-primary"/>
-        </div>
+        <?php render_input(["type" => "search", "name" => "username", "placeholder" => "Username search", "value"=>$username]);?>
+        <?php render_button(["text" => "Search", "type" => "submit"]); ?>
     </form>
-</div>
-<div class="container-fluid">
     <form method="POST">
         <?php if (isset($username) && !empty($username)) : ?>
             <input type="hidden" name="username" value="<?php se($username, false); ?>" />
@@ -94,8 +91,8 @@ if (isset($_POST["username"])) {
                             <?php foreach ($users as $user) : ?>
                                 <tr>
                                     <td>
-                                        <label class="form-check-label" for="user_<?php se($user, 'id'); ?>"><?php se($user, "username"); ?></label>
-                                        <input class="form-check-input" id="user_<?php se($user, 'id'); ?>" type="checkbox" name="users[]" value="<?php se($user, 'id'); ?>" />
+                                    <?php render_input(["type" => "checkbox", "id" => "user_" . se($user, 'id', "", false), "name" => "users[]", 
+                                    "label" => se($user, "username", "", false), "value" => se($user, 'id', "", false)]); ?>
                                     </td>
                                     <td><?php se($user, "roles", "No Roles"); ?></td>
                                 </tr>
@@ -104,16 +101,16 @@ if (isset($_POST["username"])) {
                     </td>
                     <td>
                         <?php foreach ($active_roles as $role) : ?>
-                            <div class="form-check">
-                                <label class="form-check-label" for="role_<?php se($role, 'id'); ?>"><?php se($role, "name"); ?></label>
-                                <input class="form-check-input" id="role_<?php se($role, 'id'); ?>" type="checkbox" name="roles[]" value="<?php se($role, 'id'); ?>"/>
+                            <div>
+                            <?php render_input(["type" => "checkbox", "id" => "role_" . se($role, 'id', "", false), "name" => "roles[]",
+                            "label" => se($role, "name", "", false), "value" => se($role, 'id', "", false)]); ?>
                             </div>
                         <?php endforeach; ?>
                     </td>
                 </tr>
             </tbody>
         </table>
-        <input type="submit" value="Toggle Roles" class="btn btn-primary"/>
+        <?php render_button(["text" => "Toggle Roles", "type" => "submit", "color" => "secondary"]); ?>
     </form>
 </div>
 <?php
