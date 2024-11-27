@@ -55,6 +55,7 @@ session_start();
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/list_roles.php'); ?>">List Roles</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/assign_roles.php'); ?>">Assign Roles</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/create_team.php'); ?>">Create Team</a></li>
+                            <li><a class="dropdown-item" href="<?php echo get_url('admin/list_teams.php'); ?>">List Teams</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
