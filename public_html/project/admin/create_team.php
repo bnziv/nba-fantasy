@@ -38,55 +38,71 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         flash("You must provide a team code", "warning");
     }
     //insert data
-    $db = getDB();
-    $query = "INSERT INTO `teams` ";
-    $columns = [];
-    $params = [];
-    //per record
-    foreach ($team as $k => $v) {
-        array_push($columns, "`$k`");
-        $params[":$k"] = $v;
-    }
-    $query .= "(" . join(",", $columns) . ")";
-    $query .= "VALUES (" . join(",", array_keys($params)) . ")";
-    error_log("Query: " . $query);
-    error_log("Params: " . var_export($params, true));
     try {
-        $stmt = $db->prepare($query);
-        $stmt->execute($params);
-        flash("Inserted record " . $db->lastInsertId(), "success");
-    } catch (PDOException $e) {
-        error_log("Something broke with the query" . var_export($e, true));
-        if ($e->errorInfo[1] === 1062) {
-            flash("Record already exists", "warning");
+        $result = insert("teams", $team);
+        if (!$result) {
+            flash("Unhandled error", "warning");
+        } else {
+            flash("Created record with id " . var_export($result, true), "success");
         }
-        flash("An error occurred", "danger");
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+        flash("Invalid data passed", "danger");
+    } catch (PDOException $e2) {
+        if ($e2->errorInfo[1] == 1062) {
+            flash("This entry already exists", "warning");
+        } else {
+            error_log("Database error" . var_export($e2, true));
+            flash("Database error", "danger");
+        }
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+        flash("Invalid data records", "danger");
     }
 } else if (isset($_POST["action"]) && $_POST["action"] === "fetch_all") {
-    $result = fetch_all_teams();
-    $db = getDB();
-    $insert_count = 0;
-    foreach ($result as $team) {
-        $query = "INSERT INTO `teams` ";
-        $columns = [];
-        $params = [];
-        foreach ($team as $k => $v) {
-            array_push($columns, "`$k`");
-            $params[":$k"] = $v;
+    $teams = fetch_all_teams();
+    try {
+        $result = insert("teams", $teams);
+        if (!$result) {
+            flash("Unhandled error", "warning");
+        } else {
+            flash("Inserted all teams", "success");
         }
-        $query .= "(" . join(",", $columns) . ")";
-        $query .= "VALUES (" . join(",", array_keys($params)) . ")";
-        error_log("Query: " . $query);
-        error_log("Params: " . var_export($params, true));
-        try {
-            $stmt = $db->prepare($query);
-            $stmt->execute($params);
-            $insert_count++;
-        } catch (Exception $e) {
-            error_log(var_export($e, true));
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+        flash("Invalid data passed", "danger");
+    } catch (PDOException $e2) {
+        if ($e2->errorInfo[1] == 1062) {
+            flash("Already fetched teams", "warning");
+        } else {
+            error_log("Database error" . var_export($e2, true));
+            flash("Database error", "danger");
         }
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+        flash("Invalid data records", "danger");
     }
-    flash("Inserted $insert_count records", "success");
+    
+    // foreach ($result as $team) {
+    //     $query = "INSERT INTO `teams` ";
+    //     $columns = [];
+    //     $params = [];
+    //     foreach ($team as $k => $v) {
+    //         array_push($columns, "`$k`");
+    //         $params[":$k"] = $v;
+    //     }
+    //     $query .= "(" . join(",", $columns) . ")";
+    //     $query .= "VALUES (" . join(",", array_keys($params)) . ")";
+    //     error_log("Query: " . $query);
+    //     error_log("Params: " . var_export($params, true));
+    //     try {
+    //         $stmt = $db->prepare($query);
+    //         $stmt->execute($params);
+    //         $insert_count++;
+    //     } catch (Exception $e) {
+    //         error_log(var_export($e, true));
+    //     }
+    // }
 }
 
 //TODO handle manual create stock

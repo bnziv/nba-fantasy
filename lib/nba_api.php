@@ -50,8 +50,9 @@ function fetch_all_teams() {
         $result = json_decode($result["response"], true);
         $result = $result["response"];
         $result = array_filter($result, function ($team) {
-            return isset($team["nbaFranchise"]) && $team["nbaFranchise"];
+            return isset($team["nbaFranchise"]) && $team["nbaFranchise"] && !$team["allStar"];
         });
+        $result = array_values($result);
         $result = array_map(function ($team) {
             return [
                 "api_id" => $team["id"],

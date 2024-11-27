@@ -7,7 +7,7 @@ if (!has_role("Admin")) {
     die(header("Location: $BASE_PATH" . "/home.php"));
 }
 
-$query = "SELECT id, name, nickname, code, city, conference, division, api_id FROM `teams` ORDER BY created DESC LIMIT 25";
+$query = "SELECT id, name, nickname, code, city, conference, division, api_id FROM `teams` ORDER BY name ASC LIMIT 50";
 $db = getDB();
 $stmt = $db->prepare($query);
 $results = [];
