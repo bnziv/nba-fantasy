@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS `teams` (
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `api_id` INT DEFAULT NULL,
+    `name` VARCHAR(100) NOT NULL,
+    `nickname` VARCHAR(50) NOT NULL,
+    `code` VARCHAR(3) NOT NULL,
+    `city` VARCHAR(50) NOT NULL,
+    `conference` VARCHAR(50) NOT NULL,
+    `division` VARCHAR(50) NOT NULL,
+    `logo_url` TEXT NOT NULL,
+    `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE(`name`, `nickname`, `code`)
+)
