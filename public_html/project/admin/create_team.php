@@ -11,7 +11,7 @@ if (!has_role("Admin")) {
 <?php
 
 //TODO handle stock fetch
-if (isset($_POST["action"])) {
+if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
     $action = $_POST["action"];
     $name =  strtoupper(se($_POST, "name", "", false));
     $team = [];
@@ -22,6 +22,8 @@ if (isset($_POST["action"])) {
             error_log("Data from API" . var_export($result, true));
             if ($result) {
                 $team = $result;
+            } else {
+                flash("Team not found", "warning");
             }
         } else if ($action === "create") {
             foreach ($_POST as $k => $v) {
@@ -33,7 +35,7 @@ if (isset($_POST["action"])) {
             }
         }
     } else {
-        flash("You must provide a team name", "warning");
+        flash("You must provide a team code", "warning");
     }
     //insert data
     $db = getDB();
@@ -55,8 +57,36 @@ if (isset($_POST["action"])) {
         flash("Inserted record " . $db->lastInsertId(), "success");
     } catch (PDOException $e) {
         error_log("Something broke with the query" . var_export($e, true));
+        if ($e->errorInfo[1] === 1062) {
+            flash("Record already exists", "warning");
+        }
         flash("An error occurred", "danger");
     }
+} else if (isset($_POST["action"]) && $_POST["action"] === "fetch_all") {
+    $result = fetch_all_teams();
+    $db = getDB();
+    $insert_count = 0;
+    foreach ($result as $team) {
+        $query = "INSERT INTO `teams` ";
+        $columns = [];
+        $params = [];
+        foreach ($team as $k => $v) {
+            array_push($columns, "`$k`");
+            $params[":$k"] = $v;
+        }
+        $query .= "(" . join(",", $columns) . ")";
+        $query .= "VALUES (" . join(",", array_keys($params)) . ")";
+        error_log("Query: " . $query);
+        error_log("Params: " . var_export($params, true));
+        try {
+            $stmt = $db->prepare($query);
+            $stmt->execute($params);
+            $insert_count++;
+        } catch (Exception $e) {
+            error_log(var_export($e, true));
+        }
+    }
+    flash("Inserted $insert_count records", "success");
 }
 
 //TODO handle manual create stock
@@ -73,9 +103,13 @@ if (isset($_POST["action"])) {
     </ul>
     <div id="fetch" class="tab-target">
         <form method="POST">
-            <?php render_input(["type" => "search", "name" => "name", "placeholder" => "Team Name", "rules" => ["required" => "required"]]); ?>
+            <?php render_input(["type" => "search", "name" => "name", "placeholder" => "Team Code", "rules" => ["required" => "required", "maxlength" => 3, "minlength" => 3]]); ?>
             <?php render_input(["type" => "hidden", "name" => "action", "value" => "fetch"]); ?>
-            <?php render_button(["text" => "Search", "type" => "submit",]); ?>
+            <?php render_button(["text" => "Fetch", "type" => "submit",]); ?>
+        </form>
+        <form method="POST">
+            <?php render_input(["type" => "hidden", "name" => "action", "value" => "fetch_all"]); ?>
+            <?php render_button(["text" => "Fetch All", "type" => "submit",]); ?>
         </form>
     </div>
     <div id="create" style="display: none;" class="tab-target">
@@ -90,7 +124,7 @@ if (isset($_POST["action"])) {
             <?php render_input(["type" => "text", "name" => "logo_url", "placeholder" => "Logo URL", "label" => "Logo URL", "rules" => ["required" => "required"]]); ?>
 
             <?php render_input(["type" => "hidden", "name" => "action", "value" => "create"]); ?>
-            <?php render_button(["text" => "Search", "type" => "submit", "text" => "Create"]); ?>
+            <?php render_button(["type" => "submit", "text" => "Create"]); ?>
         </form>
     </div>
 </div>
