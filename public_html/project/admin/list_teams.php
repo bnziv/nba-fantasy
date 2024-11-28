@@ -22,10 +22,14 @@ try {
     flash("Unhandled error occurred", "danger");
 }
 
-$table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "edit_url" => get_url("admin/edit_team.php"),
+$table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "edit_url" => get_url("admin/edit_team.php"), "delete_url" => get_url("admin/delete_team.php"),
     "header_override" => ["Name", "Nickname", "Code", "City", "Conference", "Division", "API ID"]];
 ?>
 <div class="container-fluid">
     <h3>List Teams</h3>
     <?php render_table($table); ?>
 </div>
+
+<?php
+require(__DIR__. "/../../../partials/flash.php");
+?>
