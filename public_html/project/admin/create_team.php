@@ -50,7 +50,7 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         flash("Invalid data passed", "danger");
     } catch (PDOException $e2) {
         if ($e2->errorInfo[1] == 1062) {
-            flash("This entry already exists", "warning");
+            flash("Team exists or name/nickname/code in use", "warning");
         } else {
             error_log("Database error" . var_export($e2, true));
             flash("Database error", "danger");
@@ -62,7 +62,8 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
 } else if (isset($_POST["action"]) && $_POST["action"] === "fetch_all") {
     $teams = fetch_all_teams();
     try {
-        $result = insert("teams", $teams);
+        $opts = ["update_duplicate" => true];
+        $result = insert("teams", $teams, $opts);
         if (!$result) {
             flash("Unhandled error", "warning");
         } else {
@@ -72,37 +73,12 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         error_log("Invalid arg" . var_export($e1, true));
         flash("Invalid data passed", "danger");
     } catch (PDOException $e2) {
-        if ($e2->errorInfo[1] == 1062) {
-            flash("Already fetched teams", "warning");
-        } else {
-            error_log("Database error" . var_export($e2, true));
-            flash("Database error", "danger");
-        }
+        error_log("Database error" . var_export($e2, true));
+        flash("Database error", "danger");
     } catch (Exception $e3) {
         error_log("Invalid data records" . var_export($e3, true));
         flash("Invalid data records", "danger");
     }
-    
-    // foreach ($result as $team) {
-    //     $query = "INSERT INTO `teams` ";
-    //     $columns = [];
-    //     $params = [];
-    //     foreach ($team as $k => $v) {
-    //         array_push($columns, "`$k`");
-    //         $params[":$k"] = $v;
-    //     }
-    //     $query .= "(" . join(",", $columns) . ")";
-    //     $query .= "VALUES (" . join(",", array_keys($params)) . ")";
-    //     error_log("Query: " . $query);
-    //     error_log("Params: " . var_export($params, true));
-    //     try {
-    //         $stmt = $db->prepare($query);
-    //         $stmt->execute($params);
-    //         $insert_count++;
-    //     } catch (Exception $e) {
-    //         error_log(var_export($e, true));
-    //     }
-    // }
 }
 
 //TODO handle manual create stock

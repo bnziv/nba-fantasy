@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS `teams` (
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `api_id` INT DEFAULT NULL,
-    `name` VARCHAR(100) NOT NULL,
-    `nickname` VARCHAR(50) NOT NULL,
-    `code` VARCHAR(3) NOT NULL,
+    `api_id` INT DEFAULT NULL UNIQUE,
+    `name` VARCHAR(100) NOT NULL UNIQUE,
+    `nickname` VARCHAR(50) NOT NULL UNIQUE,
+    `code` VARCHAR(3) NOT NULL UNIQUE,
     `city` VARCHAR(50) NOT NULL,
     `conference` VARCHAR(50) NOT NULL,
     `division` VARCHAR(50) NOT NULL,
