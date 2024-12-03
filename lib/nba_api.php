@@ -70,3 +70,40 @@ function fetch_all_teams() {
     }
     return $result;
 }
+
+/**
+ * Fetches all players from the API based on the team
+ */
+function fetch_players($team_id) {
+    $params = ["team" => $team_id, "season" => "2024"];
+    $endpoint = "https://api-nba-v1.p.rapidapi.com/players";
+    $isRapidAPI = true;
+    $rapidAPIHost = "api-nba-v1.p.rapidapi.com";
+    $result = get($endpoint, "API_KEY", $params, $isRapidAPI, $rapidAPIHost);
+    if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
+        $result = json_decode($result["response"], true);
+        $result = $result["response"];
+        $result = array_map(function ($player) use ($team_id) {
+            $height = isset($player["height"]["feets"]) ? $player["height"]["feets"] . "'" . ($player["height"]["inches"] ?? 0). '"' : null;
+            $weight = isset($player["weight"]["pounds"]) ? $player["weight"]["pounds"] . " lbs" : null;
+            if (isset($player["leagues"]["standard"])) {
+                $standardKey = "standard";
+            } elseif (isset($player["leagues"]["Standard"])) {
+                $standardKey = "Standard";
+            }
+            return [
+                "api_id" => $player["id"],
+                "first_name" => $player["firstname"],
+                "last_name" => $player["lastname"],
+                "height" => $height,
+                "weight" => $weight,
+                "jersey_number" => $player["leagues"][$standardKey]["jersey"],
+                "position" => $player["leagues"][$standardKey]["pos"],
+                "team_api_id" => $team_id
+            ];
+        }, $result);
+    } else {
+        $result = [];
+    }
+    return $result;
+}
