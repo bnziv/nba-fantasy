@@ -80,14 +80,34 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         flash("Invalid data records", "danger");
     }
 
-    $teams = fetch_standings();
+    $standings = fetch_standings();
     try {
         $opts = ["update_duplicate" => true];
-        $result = insert("standings", $teams, $opts);
+        $result = insert("standings", $standings, $opts);
         if (!$result) {
             flash("Unhandled error", "warning");
         } else {
             flash("Inserted all standings", "success");
+        }
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+        flash("Invalid data passed", "danger");
+    } catch (PDOException $e2) {
+        error_log("Database error" . var_export($e2, true));
+        flash("Database error", "danger");
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+        flash("Invalid data records", "danger");
+    }
+
+    $games = fetch_games();
+    try {
+        $opts = ["update_duplicate" => true];
+        $result = insert("games", $games, $opts);
+        if (!$result) {
+            flash("Unhandled error", "warning");
+        } else {
+            flash("Inserted all games", "success");
         }
     } catch (InvalidArgumentException $e1) {
         error_log("Invalid arg" . var_export($e1, true));

@@ -109,7 +109,7 @@ function fetch_players($team_id) {
 }
 
 /**
- * Fetch standings
+ * Fetch standings from the API
  */
 function fetch_standings() {
     $params = ["season" => "2024", "league" => "standard"];
@@ -133,6 +133,43 @@ function fetch_standings() {
                 "away_record" => $team["win"]["away"] . "-" . $team["loss"]["away"],
                 "streak" => $team["streak"] . ($team["winStreak"] ? "W" : "L"),
                 "last_10" => $team["win"]["lastTen"] . "-" . $team["loss"]["lastTen"],
+            ];
+        }, $result);
+    } else {
+        $result = [];
+    }
+    return $result;
+}
+
+/**
+ * Fetches all games from the API
+ */
+function fetch_games() {
+    $params = ["season" => "2024"];
+    $endpoint = "https://api-nba-v1.p.rapidapi.com/games";
+    $isRapidAPI = true;
+    $rapidAPIHost = "api-nba-v1.p.rapidapi.com";
+    $result = get($endpoint, "API_KEY", $params, $isRapidAPI, $rapidAPIHost);
+    if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
+        $result = json_decode($result["response"], true);
+        $result = $result["response"];
+        $result = array_filter($result, function ($game) {
+            return $game["stage"] == 2;
+        });
+        $result = array_values($result);
+        $result = array_map(function ($game) {
+            $date = new DateTime($game["date"]["start"]);
+            $date = $date->format("Y-m-d H:i:s");
+            return [
+                "api_id" => $game["id"],
+                "season" => $game["season"],
+                "date" => $date,
+                "home_team_api_id" => $game["teams"]["home"]["id"],
+                "away_team_api_id" => $game["teams"]["visitors"]["id"],
+                "home_score" => $game["scores"]["home"]["points"],
+                "away_score" => $game["scores"]["visitors"]["points"],
+                "arena" => $game["arena"]["name"] . ", " . $game["arena"]["city"] . ", " . $game["arena"]["state"],
+                "status" => $game["status"]["long"],
             ];
         }, $result);
     } else {
