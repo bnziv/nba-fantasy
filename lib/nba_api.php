@@ -107,3 +107,36 @@ function fetch_players($team_id) {
     }
     return $result;
 }
+
+/**
+ * Fetch standings
+ */
+function fetch_standings() {
+    $params = ["season" => "2024", "league" => "standard"];
+    $endpoint = "https://api-nba-v1.p.rapidapi.com/standings";
+    $isRapidAPI = true;
+    $rapidAPIHost = "api-nba-v1.p.rapidapi.com";
+    $result = get($endpoint, "API_KEY", $params, $isRapidAPI, $rapidAPIHost);
+    if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
+        $result = json_decode($result["response"], true);
+        $result = $result["response"];
+        $result = array_map(function ($team) {
+            return [
+                "season" => $team["season"],
+                "team_api_id" => $team["team"]["id"],
+                "wins" => $team["win"]["total"],
+                "losses" => $team["loss"]["total"],
+                "win_percentage" => $team["win"]["percentage"],
+                "conference_rank" => $team["conference"]["rank"],
+                "division_rank" => $team["division"]["rank"],
+                "home_record" => $team["win"]["home"] . "-" . $team["loss"]["home"],
+                "away_record" => $team["win"]["away"] . "-" . $team["loss"]["away"],
+                "streak" => $team["streak"] . ($team["winStreak"] ? "W" : "L"),
+                "last_10" => $team["win"]["lastTen"] . "-" . $team["loss"]["lastTen"],
+            ];
+        }, $result);
+    } else {
+        $result = [];
+    }
+    return $result;
+}

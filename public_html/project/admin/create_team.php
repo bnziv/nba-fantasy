@@ -80,42 +80,62 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         flash("Invalid data records", "danger");
     }
 
-    //Get all API teams
-    $query = "SELECT api_id FROM teams WHERE api_id IS NOT NULL";
-    $db = getDB();
-    $stmt = $db->prepare($query);
+    $teams = fetch_standings();
     try {
-        $stmt->execute();
-        $r = $stmt->fetchAll();
-        if ($r) {
-            $results = $r;
+        $opts = ["update_duplicate" => true];
+        $result = insert("standings", $teams, $opts);
+        if (!$result) {
+            flash("Unhandled error", "warning");
+        } else {
+            flash("Inserted all standings", "success");
         }
-    } catch (PDOException $e) {
-        flash("Unhandled error occurred", "danger");
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+        flash("Invalid data passed", "danger");
+    } catch (PDOException $e2) {
+        error_log("Database error" . var_export($e2, true));
+        flash("Database error", "danger");
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+        flash("Invalid data records", "danger");
     }
 
+    //Get all API teams
+    // $query = "SELECT api_id FROM teams WHERE api_id IS NOT NULL";
+    // $db = getDB();
+    // $stmt = $db->prepare($query);
+    // try {
+    //     $stmt->execute();
+    //     $r = $stmt->fetchAll();
+    //     if ($r) {
+    //         $results = $r;
+    //     }
+    // } catch (PDOException $e) {
+    //     flash("Unhandled error occurred", "danger");
+    // }
+
     //Get all players for each team
-    foreach ($results as $team) {
-        $players = fetch_players($team["api_id"]);
-        try {
-            $opts = ["update_duplicate" => true];
-            $result = insert("players", $players, $opts);
-            if (!$result) {
-                flash("Unhandled error", "warning");
-            } else {
-                flash("Inserted all players for all API teams", "success");
-            }
-        } catch (InvalidArgumentException $e1) {
-            error_log("Invalid arg" . var_export($e1, true));
-            flash("Invalid data passed", "danger");
-        } catch (PDOException $e2) {
-            error_log("Database error" . var_export($e2, true));
-            flash("Database error", "danger");
-        } catch (Exception $e3) {
-            error_log("Invalid data records" . var_export($e3, true));
-            flash("Invalid data records", "danger");
-        }
-    }
+    // foreach ($results as $team) {
+    //     $players = fetch_players($team["api_id"]);
+    //     try {
+    //         $opts = ["update_duplicate" => true];
+    //         $result = insert("players", $players, $opts);
+    //         if (!$result) {
+    //             flash("Unhandled error", "warning");
+    //         } else {
+    //             flash("Inserted all players for all API teams", "success");
+    //         }
+    //     } catch (InvalidArgumentException $e1) {
+    //         error_log("Invalid arg" . var_export($e1, true));
+    //         flash("Invalid data passed", "danger");
+    //     } catch (PDOException $e2) {
+    //         error_log("Database error" . var_export($e2, true));
+    //         flash("Database error", "danger");
+    //     } catch (Exception $e3) {
+    //         error_log("Invalid data records" . var_export($e3, true));
+    //         flash("Invalid data records", "danger");
+    //     }
+    // }
 }
 
 //TODO handle manual create stock

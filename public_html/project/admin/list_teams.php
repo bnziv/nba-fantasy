@@ -26,7 +26,6 @@ $table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "
     "header_override" => ["Name", "Nickname", "Code", "City", "Conference", "Division", "API ID"]];
 ?>
 <div class="container-fluid">
-    <h3>List Teams</h3>
     <?php render_table($table); ?>
 </div>
 
