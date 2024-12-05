@@ -62,13 +62,15 @@ if (isset($_POST["action"])) {
 }
 $teams = get_teams();
 $team_names = array_map(function ($team) {
-    return [$team["api_id"] => $team["name"]];
+    if (isset($team["name"]) && isset($team["api_id"])) {
+        return [$team["api_id"] => $team["name"]];
+    }
+    return [];
 }, $teams);
 $table = ["data" => $teams, "header_override" => ["Team", "Player Count"], "ignored_columns" => ["api_id"], "primary_key" => "api_id",
 "post_self_form" => ["name" => "action", "classes" => "btn btn-primary", "label" => "Fetch"]];
-
-//TODO handle manual create stock
 ?>
+
 <div class="container-fluid">
     <h3>Create or Fetch Players</h3>
     <ul class="nav nav-tabs">
@@ -79,6 +81,7 @@ $table = ["data" => $teams, "header_override" => ["Team", "Player Count"], "igno
             <a class="nav-link bg-success" href="#" onclick="switchTab('fetch')">Create</a>
         </li>
     </ul>
+    <?php if ($teams): ?>
     <div id="fetch" class="tab-target">
         <?php render_table($table); ?>
     </div>
@@ -96,6 +99,14 @@ $table = ["data" => $teams, "header_override" => ["Team", "Player Count"], "igno
             <?php render_button(["type" => "submit", "text" => "Create"]); ?>
         </form>
     </div>
+    <?php else: ?>
+    <div id="fetch" class="tab-target">
+        <p>No teams found</p>
+    </div>
+    <div id="create" style="display: none;" class="tab-target">
+        <p>No teams found</p>
+    </div>
+    <?php endif; ?>
 </div>
 <script>
     function switchTab(tab) {
