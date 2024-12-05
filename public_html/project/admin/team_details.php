@@ -6,13 +6,18 @@ $details = [];
 $games = [];
 $players = [];
 if ($id > 0) {
-    $detailsQuery = "SELECT t.name, t.code, t.conference, t.division, t.logo_url, s.wins, s.losses, s.win_percentage, s.division_rank, s.conference_rank, s.home_record, s.away_record, s.streak, s.last_10 FROM teams t
-    JOIN standings s ON s.team_api_id = t.api_id WHERE t.id = :id LIMIT 100";
+    if (get_team_api_id($id) === null) { //User generated team
+        $detailsQuery = "SELECT t.name, t.code, t.conference, t.division, t.logo_url FROM teams t WHERE t.id = :id";
+    } else { //API team
+        $detailsQuery = "SELECT t.name, t.code, t.conference, t.division, t.logo_url, s.wins, s.losses, s.win_percentage, s.division_rank, s.conference_rank, s.home_record, s.away_record, s.streak, s.last_10 FROM teams t
+        JOIN standings s ON s.team_api_id = t.api_id WHERE t.id = :id";
+    }
     try {
         $db = getDB();
         $stmt = $db->prepare($detailsQuery);
         $stmt->execute([":id" => $id]);
         $r = $stmt->fetch();
+        error_log(var_export($r, true));
         if ($r) {
             $details = $r;
         }
@@ -79,7 +84,7 @@ if ($id > 0) {
     $games_table = ["data" => $data, "title" => "Next/Last 5 Games"];
 
     $playersQuery = "SELECT CONCAT(p.first_name, \" \", p.last_name) AS name, p.height, p.weight, p.jersey_number FROM players p 
-    JOIN teams t ON t.api_id = p.team_api_id WHERE t.id = :id ORDER BY p.jersey_number IS NULL, p.jersey_number";
+    JOIN teams t ON t.id = p.team_id WHERE t.id = :id ORDER BY p.jersey_number IS NULL, p.jersey_number";
     try {
         $db = getDB();
         $stmt = $db->prepare($playersQuery);

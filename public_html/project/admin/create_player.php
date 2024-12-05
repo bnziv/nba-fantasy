@@ -11,7 +11,8 @@ if (!has_role("Admin")) {
 <?php
 if (isset($_POST["action"])) {
     $action = $_POST["action"];
-    $rename = ["fname" => "first_name", "lname" => "last_name", "number" => "jersey_number", "team" => "team_api_id"];
+    error_log(var_export($_POST, true));
+    $rename = ["fname" => "first_name", "lname" => "last_name", "number" => "jersey_number", "team" => "team_id"];
     if ($action === "create") {
         foreach ($_POST as $k => $v) {
             if (!in_array($k, ["fname", "lname", "height", "weight", "number", "position", "team"])) {
@@ -28,10 +29,20 @@ if (isset($_POST["action"])) {
             }
             $new_key = $rename[$k] ?? $k;
             $players[$new_key] = $v;
-            error_log("Cleaned up POST: " . var_export($players, true));
         }
     } else {
-        $players = fetch_players($action);
+        $action = get_team_api_id($action);
+        if (empty($action)) {
+            flash("Cannot fetch players from a user-created team", "warning");
+            die(header("Location: $BASE_PATH" . "/admin/create_player.php"));
+        } else {
+            try {
+                $players = fetch_players($action);
+            } catch (Exception $e) {
+                error_log("Error fetching team " . var_export($e, true));
+                flash("Error fetching team", "danger");
+            }
+        }
     }
     try {
         $opts = ["update_duplicate" => true];
@@ -62,12 +73,12 @@ if (isset($_POST["action"])) {
 }
 $teams = get_teams();
 $team_names = array_map(function ($team) {
-    if (isset($team["name"]) && isset($team["api_id"])) {
-        return [$team["api_id"] => $team["name"]];
+    if (isset($team["name"]) && isset($team["id"])) {
+        return [$team["id"] => $team["name"]];
     }
     return [];
 }, $teams);
-$table = ["data" => $teams, "header_override" => ["Team", "Player Count"], "ignored_columns" => ["api_id"], "primary_key" => "api_id",
+$table = ["data" => $teams, "header_override" => ["Team", "Player Count"], "ignored_columns" => ["id"], "primary_key" => "id",
 "post_self_form" => ["name" => "action", "classes" => "btn btn-primary", "label" => "Fetch"]];
 ?>
 

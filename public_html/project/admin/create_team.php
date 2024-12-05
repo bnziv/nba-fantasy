@@ -207,6 +207,7 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
             }
         }
     }
+    
 </script>
 
 <?php
