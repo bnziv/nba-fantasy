@@ -83,6 +83,7 @@ function fetch_players($team_id) {
     if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
         $result = json_decode($result["response"], true);
         $result = $result["response"];
+        error_log(var_export($result, true));
         $result = array_map(function ($player) use ($team_id) {
             $height = isset($player["height"]["feets"]) ? $player["height"]["feets"] . "'" . ($player["height"]["inches"] ?? 0). '"' : null;
             $weight = isset($player["weight"]["pounds"]) ? $player["weight"]["pounds"] . " lbs" : null;
