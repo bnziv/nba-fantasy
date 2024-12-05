@@ -59,6 +59,40 @@ function get_team_db_id($api_id) {
     return "";
 }
 
+function get_conferences() {
+    $query = "SELECT DISTINCT conference FROM teams ORDER BY conference";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $r = $stmt->fetchAll();
+        if ($r) {
+            return $r;
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching conferences: " . var_export($e, true));
+        flash("Error fetching conferences", "danger");
+    }
+    return [];
+}
+
+function get_divisions() {
+    $query = "SELECT DISTINCT division FROM teams ORDER BY division";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $r = $stmt->fetchAll();
+        if ($r) {
+            return $r;
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching divisions: " . var_export($e, true));
+        flash("Error fetching divisions", "danger");
+    }
+    return [];
+}
+
 function card($data = array()) {
     include(__DIR__. "/../partials/card.php");
 }

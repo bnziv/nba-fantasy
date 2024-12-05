@@ -44,31 +44,35 @@ if (isset($_POST["action"])) {
             }
         }
     }
-    try {
-        $opts = ["update_duplicate" => true];
-        $result = insert("players", $players, $opts);
-        if (!$result) {
-            flash("Unhandled error", "warning");
-        } else {
-            if ($action === "create") {
-                flash("Inserted player", "success");
+    if (!empty($players)) {
+        try {
+            $opts = ["update_duplicate" => true];
+            $result = insert("players", $players, $opts);
+            if (!$result) {
+                flash("Unhandled error", "warning");
             } else {
-                flash("Fetched players from team API ID $action", "success");
+                if ($action === "create") {
+                    flash("Inserted player", "success");
+                } else {
+                    flash("Fetched players from team API ID $action", "success");
+                }
             }
+        } catch (InvalidArgumentException $e1) {
+            error_log("Invalid arg" . var_export($e1, true));
+            flash("Invalid data passed", "danger");
+        } catch (PDOException $e2) {
+            if ($e2->errorInfo[1] == 1062) {
+                flash("Team exists or name/nickname/code in use", "warning");
+            } else {
+                error_log("Database error" . var_export($e2, true));
+                flash("Database error", "danger");
+            }
+        } catch (Exception $e3) {
+            error_log("Invalid data records" . var_export($e3, true));
+            flash("Invalid data records", "danger");
         }
-    } catch (InvalidArgumentException $e1) {
-        error_log("Invalid arg" . var_export($e1, true));
-        flash("Invalid data passed", "danger");
-    } catch (PDOException $e2) {
-        if ($e2->errorInfo[1] == 1062) {
-            flash("Team exists or name/nickname/code in use", "warning");
-        } else {
-            error_log("Database error" . var_export($e2, true));
-            flash("Database error", "danger");
-        }
-    } catch (Exception $e3) {
-        error_log("Invalid data records" . var_export($e3, true));
-        flash("Invalid data records", "danger");
+    } else {
+        flash("Rate limit per minute exceed, please try again later", "warning");
     }
 }
 $teams = get_teams();
@@ -148,7 +152,7 @@ $table = ["data" => $teams, "header_override" => ["Team", "Player Count"], "igno
             isValid = false;
         }
         if (!heightPattern.test(form.height.value)) {
-            flash("Height must be in the correct format (ex. 6'3\")", "danger");
+            flash("Height must be in the correct format (ex. 6-3)", "danger");
             isValid = false;
         }
         if (!form.weight.value) {
