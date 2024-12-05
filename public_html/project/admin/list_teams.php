@@ -23,7 +23,7 @@ try {
 }
 
 $table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "edit_url" => get_url("admin/edit_team.php"), "delete_url" => get_url("admin/delete_team.php"),
-    "header_override" => ["Name", "Nickname", "Code", "City", "Conference", "Division", "API ID"]];
+        "view_url" => get_url("admin/team_details.php"), "header_override" => ["Name", "Nickname", "Code", "City", "Conference", "Division", "API ID"]];
 ?>
 <div class="container-fluid">
     <?php render_table($table); ?>
