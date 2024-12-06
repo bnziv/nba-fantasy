@@ -93,6 +93,65 @@ function get_divisions() {
     return [];
 }
 
+/**
+ * Get all games for a given date
+ * 
+ * @param string $date The date in the format of Y-m-d as EST
+ * 
+ */
+function get_games_for_date($date) {
+    $query = "SELECT date, ht.name AS home, at.name AS away,
+    home_score, away_score, arena, status FROM games 
+    JOIN teams ht ON home_team_api_id = ht.api_id 
+    JOIN teams at ON away_team_api_id = at.api_id 
+    WHERE DATE(CONVERT_TZ(date, '+00:00', '-05:00')) = :date ORDER BY date";
+
+    //Get today's date in EST
+    if (!preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/", $date)) {
+        return [];
+    }
+    $params = [":date" => $date];
+
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute($params);
+        $r = $stmt->fetchAll();
+        if ($r) {
+            $games = $r;
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching games: " . var_export($e, true));
+        flash("Error fetching games", "danger");
+    }
+
+    $games = array_map(function ($game) {
+        //Format time in EST
+        $date = new DateTime($game["date"], new DateTimeZone("UTC"));
+        $date = $date->setTimezone(new DateTimeZone("America/New_York"));
+        $game["date"] = $date->format("h:i A");
+
+        if ($game["status"] == "Finished") {
+            if ($game["home_score"] > $game["away_score"]) {
+                $game["home"] = $game["home"] . " (W)";
+                $game["away"] = $game["away"] . " (L)";
+            } else {
+                $game["home"] = $game["home"] . " (L)";
+                $game["away"] = $game["away"] . " (W)";
+            }
+        }
+
+        return [
+            "Start Time (EST)" => $game["date"],
+            "Home" => $game["home"],
+            "Away" => $game["away"],
+            "Home Score" => $game["home_score"],
+            "Away Score" => $game["away_score"],
+            "Arena" => $game["arena"]];
+    }, $games);
+    return $games;
+}
+
 function card($data = array()) {
     include(__DIR__. "/../partials/card.php");
 }

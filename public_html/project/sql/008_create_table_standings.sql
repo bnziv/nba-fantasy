@@ -13,5 +13,6 @@ CREATE TABLE IF NOT EXISTS  `standings` (
     `last_10` VARCHAR(5) NOT NULL,
     `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`team_api_id`) REFERENCES `teams`(`api_id`) ON DELETE CASCADE
+    FOREIGN KEY (`team_api_id`) REFERENCES `teams`(`api_id`) ON DELETE CASCADE,
+    UNIQUE(`season`, `team_api_id`)
 )

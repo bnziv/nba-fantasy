@@ -10,7 +10,7 @@ function fetch_team($code) {
     $isRapidAPI = true;
     $rapidAPIHost = "api-nba-v1.p.rapidapi.com";
     $result = get($endpoint, "API_KEY", $params, $isRapidAPI, $rapidAPIHost);
-    if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
+    if (se($result, "status", 400, false) == 200 && isset($result["response"]) && !empty($result["response"]["response"])) {
         $result = json_decode($result["response"], true);
         $result = $result["response"];
 
@@ -82,6 +82,9 @@ function fetch_players($team_api_id) {
     $result = get($endpoint, "API_KEY", $params, $isRapidAPI, $rapidAPIHost);
     if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
         $result = json_decode($result["response"], true);
+        if (!isset($result["response"])) {
+            return [];
+        }
         $result = $result["response"];
         $team_id = get_team_db_id($team_api_id);
         $result = array_map(function ($player) use ($team_id) {
