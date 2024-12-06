@@ -19,7 +19,11 @@
     $_primary_key_column = se($data, "primary_key", "id", false); // used for the url generation
     $_fetch_url = se($data, "fetch_url", "", false);
     //TODO persist query params (future lesson)
-    //
+    $params = $_GET;
+    if (isset($params[$_primary_key_column])) {
+        unset($params[$_primary_key_column]);
+    }
+    $qp = http_build_query($params);
     // edge case that should consider a redesign
     $_post_self_form = isset($data["post_self_form"]) ? $data["post_self_form"] : [];
     // end edge case
@@ -31,6 +35,7 @@
         $_header_override = explode(",", $_header_override);
     }
     $_ignored_columns = isset($data["ignored_columns"]) ? $data["ignored_columns"] : []; // note: this is as csv string or an array
+    error_log("ignored columns: " . var_export($_ignored_columns, true));
     // assumes csv list; explodes to array
     if (is_string($_ignored_columns)) {
         $_ignored_columns = explode(",", $_ignored_columns);
@@ -72,13 +77,13 @@
                                     <a href="<?php se($_fetch_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>" class="btn btn-success">Fetch</a>
                                 <?php endif; ?>
                                 <?php if ($_view_url) : ?>
-                                    <a href="<?php se($_view_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>" class="<?php se($_view_classes); ?>"><?php se($_view_label); ?></a>
+                                    <a href="<?php se($_view_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="<?php se($_view_classes); ?>"><?php se($_view_label); ?></a>
                                 <?php endif; ?>
                                 <?php if ($_edit_url) : ?>
-                                    <a href="<?php se($_edit_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>" class="<?php se($_edit_classes); ?>"><?php se($_edit_label); ?></a>
+                                    <a href="<?php se($_edit_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="<?php se($_edit_classes); ?>"><?php se($_edit_label); ?></a>
                                 <?php endif; ?>
                                 <?php if ($_delete_url) : ?>
-                                    <a href="<?php se($_delete_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>" class="<?php se($_delete_classes); ?>"><?php se($_delete_label); ?></a>
+                                    <a href="<?php se($_delete_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="<?php se($_delete_classes); ?>"><?php se($_delete_label); ?></a>
                                 <?php endif; ?>
                                 <?php if ($_post_self_form) : ?>
                                     <!-- TODO refactor -->

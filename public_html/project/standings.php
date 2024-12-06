@@ -1,22 +1,15 @@
 <?php
 require(__DIR__ . "/../../partials/nav.php");
 
-$name = se($_GET, "name", "", false);
-$code = se($_GET, "code", "", false);
 $conference = se($_GET, "conference", "", false);
 $division = se($_GET, "division", "", false);
+$order = se($_GET, "order", "desc", false);
+$type = se($_GET, "type", "wins", false);
 
-$query = "SELECT id, name as Name, code as Code, conference as Conference, division as Division 
-FROM `teams` WHERE 1=1";
+$query = "SELECT t.id, t.name as Name, CONCAT(wins, \"-\", losses) AS Record, CONCAT(t.conference, \" - Rank: \", conference_rank) AS Conference,
+CONCAT(t.division, \" - Rank: \", division_rank) AS Division, streak AS Streak, last_10 AS \"Last 10\" FROM standings
+JOIN teams t ON team_api_id = t.api_id WHERE 1=1";
 $params = [];
-if (!empty($name)) {
-    $query .= " AND name LIKE :name";
-    $params[":name"] = "%$name%";
-}
-if (!empty($code)) {
-    $query .= " AND code LIKE :code";
-    $params[":code"] = "%$code%";
-}
 if (!empty($conference)) {
     $query .= " AND conference LIKE :conference";
     $params[":conference"] = "%$conference%";
@@ -25,7 +18,17 @@ if (!empty($division)) {
     $query .= " AND division LIKE :division";
     $params[":division"] = "%$division%";
 }
-$query .= " ORDER BY name";
+switch ($type) {
+    case "wins":
+        $query .= " ORDER BY wins $order";
+        break;
+    case "crank":
+        $query .= " ORDER BY conference_rank $order";
+        break;
+    case "drank":
+        $query .= " ORDER BY division_rank $order";
+        break;
+}
 $db = getDB();
 $stmt = $db->prepare($query);
 $results = [];
@@ -39,12 +42,9 @@ try {
     error_log("Error fetching teams " . var_export($e, true));
     flash("Unhandled error occurred", "danger");
 }
-$table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "view_url" => get_url("team_details.php"), "view_label" => "Details",
+$table = ["data" => $results, "title" => "Standings", "ignored_columns" => ["id"], "view_url" => get_url("team_details.php"), "view_label" => "Details",
 "empty_message" => "No teams to show"];
-if (has_role("Admin")) {
-    $table["edit_url"] = get_url("admin/edit_team.php"); 
-    $table["delete_url"] = get_url("admin/delete_team.php");
-}
+
 $conferences = get_conferences();
 $conferences = array_map(function ($v) {
     return [$v["conference"] => $v["conference"]];
@@ -56,24 +56,29 @@ $divisions = array_map(function ($v) {
 array_push($conferences, ["" => "None"]);
 array_push($divisions, ["" => "None"]);
 
+$types = [
+    ["wins" => "Wins"],
+    ["crank" => "Conference Rank"],
+    ["drank" => "Division Rank"]
+]
+
 ?>
 <div class="container-fluid">
     <div>
         <form>
             <div class="row">
                 <div class="col">
-                    <?php render_input(["name" => "name", "type" => "text", "label" => "Name"]); ?>
+                    <?php render_input(["name" => "conference", "type" => "select", "label" => "Conference", "value" => $conference, "options" => $conferences]); ?>
                 </div>
                 <div class="col">
-                    <?php render_input(["name" => "code", "type" => "text", "label" => "Code", "rules" => ["maxlength" => 3]]); ?>
+                    <?php render_input(["name" => "division", "type" => "select", "label" => "Division", "value" => $division, "options" => $divisions]); ?>
                 </div>
                 <div class="col">
-                    <?php render_input(["name" => "conference", "type" => "select", "label" => "Conference", "value" => "", "options" => $conferences]); ?>
+                    <?php render_input(["name" => "type", "type" => "select", "label" => "Order by", "value" => $type, "options" => $types]); ?>
                 </div>
                 <div class="col">
-                    <?php render_input(["name" => "division", "type" => "select", "label" => "Division", "value" => "", "options" => $divisions]); ?>
+                    <?php render_input(["name" => "order", "type" => "select", "label" => "Order", "value" => $order, "options" => [["asc" => "Ascending"], ["desc" => "Descending"]]]); ?>
                 </div>
-            </div>
             <div class="row">
                 <div class="col">
                     <?php render_button(["type" => "submit", "text" => "Search"]); ?>
