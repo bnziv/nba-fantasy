@@ -35,7 +35,6 @@
         $_header_override = explode(",", $_header_override);
     }
     $_ignored_columns = isset($data["ignored_columns"]) ? $data["ignored_columns"] : []; // note: this is as csv string or an array
-    error_log("ignored columns: " . var_export($_ignored_columns, true));
     // assumes csv list; explodes to array
     if (is_string($_ignored_columns)) {
         $_ignored_columns = explode(",", $_ignored_columns);

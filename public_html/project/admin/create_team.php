@@ -10,7 +10,6 @@ if (!has_role("Admin")) {
 
 <?php
 
-//TODO handle stock fetch
 if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
     $action = $_POST["action"];
     $name =  strtoupper(se($_POST, "name", "", false));
