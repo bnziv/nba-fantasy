@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . "/../../../partials/nav.php");
+require_once(__DIR__ . "/../../partials/nav.php");
 
 $id = (int)se($_GET, "id", -1, false);
 $details = [];
@@ -138,4 +138,4 @@ if ($id > 0) {
     </div>
 </div>
 <?php 
-require_once(__DIR__ . "/../../../partials/flash.php");
+require_once(__DIR__ . "/../../partials/flash.php");
