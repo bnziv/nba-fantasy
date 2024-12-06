@@ -59,6 +59,7 @@ session_start();
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/create_team.php'); ?>">Create Team</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/list_teams.php'); ?>">List Teams</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/create_player.php'); ?>">Create Player</a></li>
+                            <li><a class="dropdown-item" href="<?php echo get_url('admin/fetch_data.php'); ?>">Fetch Data</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
