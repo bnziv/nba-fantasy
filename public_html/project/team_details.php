@@ -84,7 +84,7 @@ if ($id > 0) {
     $games_table = ["data" => $data, "title" => "Next/Last 5 Games"];
 
     $playersQuery = "SELECT CONCAT(p.first_name, \" \", p.last_name) AS name, p.height, p.weight, p.jersey_number FROM players p 
-    JOIN teams t ON t.id = p.team_id WHERE t.id = :id ORDER BY p.jersey_number IS NULL, p.jersey_number";
+    JOIN teams t ON t.id = p.team_id WHERE t.id = :id ORDER BY p.last_name";
     try {
         $db = getDB();
         $stmt = $db->prepare($playersQuery);

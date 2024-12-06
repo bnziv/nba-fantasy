@@ -40,7 +40,7 @@ try {
     flash("Unhandled error occurred", "danger");
 }
 $table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "view_url" => get_url("team_details.php"), "view_label" => "Details",
-"empty_message" => "No teams to show"];
+"empty_message" => "No teams to show", "extra_classes" => "table-hover"];
 if (has_role("Admin")) {
     $table["edit_url"] = get_url("admin/edit_team.php"); 
     $table["delete_url"] = get_url("admin/delete_team.php");
@@ -62,16 +62,16 @@ array_push($divisions, ["" => "None"]);
         <form>
             <div class="row">
                 <div class="col">
-                    <?php render_input(["name" => "name", "type" => "text", "label" => "Name"]); ?>
+                    <?php render_input(["name" => "name", "type" => "text", "label" => "Name", "value" => $name]); ?>
                 </div>
                 <div class="col">
-                    <?php render_input(["name" => "code", "type" => "text", "label" => "Code", "rules" => ["maxlength" => 3]]); ?>
+                    <?php render_input(["name" => "code", "type" => "text", "label" => "Code", "value" => $code, "rules" => ["maxlength" => 3]]); ?>
                 </div>
                 <div class="col">
-                    <?php render_input(["name" => "conference", "type" => "select", "label" => "Conference", "value" => "", "options" => $conferences]); ?>
+                    <?php render_input(["name" => "conference", "type" => "select", "label" => "Conference", "value" => $conference, "options" => $conferences]); ?>
                 </div>
                 <div class="col">
-                    <?php render_input(["name" => "division", "type" => "select", "label" => "Division", "value" => "", "options" => $divisions]); ?>
+                    <?php render_input(["name" => "division", "type" => "select", "label" => "Division", "value" => $division, "options" => $divisions]); ?>
                 </div>
             </div>
             <div class="row">

@@ -43,7 +43,7 @@ try {
     flash("Unhandled error occurred", "danger");
 }
 $table = ["data" => $results, "title" => "Standings", "ignored_columns" => ["id"], "view_url" => get_url("team_details.php"), "view_label" => "Details",
-"empty_message" => "No teams to show"];
+"empty_message" => "No teams to show", "extra_classes" => "table-hover"];
 
 $conferences = get_conferences();
 $conferences = array_map(function ($v) {
