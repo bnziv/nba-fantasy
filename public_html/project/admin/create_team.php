@@ -26,11 +26,14 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
             }
         } else if ($action === "create") {
             foreach ($_POST as $k => $v) {
-                if (!in_array($k, ["api_id","name", "nickname", "code", "city", "conference", "division", "logo_url"])) {
+                if (!in_array($k, ["name", "nickname", "code", "city", "conference", "division", "logo_url"])) {
                     unset($_POST[$k]);
                 }
-                $team = $_POST;
-                error_log("Cleaned up POST: " . var_export($team, true));
+                if ($k === "code") {
+                    $v = strtoupper($v);
+                }
+            $team = $_POST;
+            error_log("Cleaned up POST: " . var_export($team, true));
             }
         }
     } else {
@@ -42,7 +45,11 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
             if (!$result) {
                 flash("Unhandled error", "warning");
             } else {
-                flash("Created record with id " . var_export($result, true), "success");
+                if ($action === "create") {
+                    flash("Created team \"" . $team["name"] . "\"", "success");
+                } else {
+                    flash("Fetched team \"" . $team["name"] . "\"", "success");
+                }
             }
         } catch (InvalidArgumentException $e1) {
             error_log("Invalid arg" . var_export($e1, true));
@@ -120,8 +127,17 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         flash("Invalid data records", "danger");
     }
 }
+$conferences = get_conferences();
+$conferences = array_map(function ($v) {
+    return [$v["conference"] => $v["conference"]];
+}, $conferences);
+$divisions = get_divisions();
+$divisions = array_map(function ($v) {
+    return [$v["division"] => $v["division"]];
+}, $divisions);
+error_log("Conferences: " . var_export($conferences, true));
+error_log("Divisions: " . var_export($divisions, true));
 
-//TODO handle manual create stock
 ?>
 <div class="container-fluid">
     <h3>Create or Fetch Team</h3>
@@ -145,14 +161,14 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
         </form>
     </div>
     <div id="create" style="display: none;" class="tab-target">
-        <form method="POST">
+        <form method="POST" onsubmit="return validate(this)">
 
             <?php render_input(["type" => "text", "name" => "name", "placeholder" => "Name", "label" => "Name", "rules" => ["required" => "required"]]); ?>
             <?php render_input(["type" => "text", "name" => "nickname", "placeholder" => "Nickname", "label" => "Nickname", "rules" => ["required" => "required"]]); ?>
             <?php render_input(["type" => "text", "name" => "code", "placeholder" => "Code", "label" => "Code", "rules" => ["required" => "required", "maxlength" => 3]]); ?>
             <?php render_input(["type" => "text", "name" => "city", "placeholder" => "City", "label" => "City", "rules" => ["required" => "required"]]); ?>
-            <?php render_input(["type" => "text", "name" => "conference", "placeholder" => "Conference", "label" => "Conference", "rules" => ["required" => "required"]]); ?>
-            <?php render_input(["type" => "text", "name" => "division", "placeholder" => "Division", "label" => "Division", "rules" => ["required" => "required"]]); ?>
+            <?php render_input(["type" => "select", "name" => "conference", "label" => "Conference", "options" => $conferences, "rules" => ["required" => "required"]]); ?>
+            <?php render_input(["type" => "select", "name" => "division", "label" => "Division", "options" => $divisions, "rules" => ["required" => "required"]]); ?>
             <?php render_input(["type" => "text", "name" => "logo_url", "placeholder" => "Logo URL", "label" => "Logo URL", "rules" => ["required" => "required"]]); ?>
 
             <?php render_input(["type" => "hidden", "name" => "action", "value" => "create"]); ?>
@@ -170,10 +186,37 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
             }
         }
     }
+    function validate(form) {
+        document.getElementById("flash").innerHTML = "";
+        let isValid = true;
+        let namePattern = /^[a-zA-Z ]{3,30}$/;
+        let eastDivisions = ["Central", "Atlantic", "Southeast"];
+        let westDivisions = ["Southwest", "Pacific", "Northwest"];
+        if (!namePattern.test(form.name.value.trim())) {
+            flash("Name must be between 3 and 30 alphabetic characters", "danger");
+            isValid = false;
+        }
+        if (!namePattern.test(form.nickname.value.trim())) {
+            flash("Nickname must be between 3 and 30 alphabetic characters", "danger");
+            isValid = false;
+        }
+        if (form.code.value.trim().length != 3) {
+            flash("Code must be 3 characters", "danger");
+            isValid = false;
+        }
+        if (form.conference.value.trim() == "East" && westDivisions.includes(form.division.value.trim())) {
+            flash("East conference teams cannot be in western divisions", "danger");
+            isValid = false;
+        }
+        if (form.conference.value.trim() == "West" && eastDivisions.includes(form.division.value.trim())) {
+            flash("West conference teams cannot be in eastern divisions", "danger");
+            isValid = false;
+        }
+        return isValid;
+    }
     
 </script>
 
 <?php
-//note we need to go up 1 more directory
 require_once(__DIR__ . "/../../../partials/flash.php");
 ?>
