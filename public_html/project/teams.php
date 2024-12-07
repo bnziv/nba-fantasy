@@ -26,6 +26,15 @@ if (!empty($division)) {
     $params[":division"] = "%$division%";
 }
 $query .= " ORDER BY name";
+
+$limit = 10;
+if (isset($_GET["limit"]) && !is_nan($_GET["limit"])) {
+    $limit = $_GET["limit"];
+    if ($limit < 0 || $limit > 100) {
+        $limit = 10;
+    }
+}
+$query .= " LIMIT $limit";
 $db = getDB();
 $stmt = $db->prepare($query);
 $results = [];
@@ -72,6 +81,9 @@ array_push($divisions, ["" => "None"]);
                 </div>
                 <div class="col">
                     <?php render_input(["name" => "division", "type" => "select", "label" => "Division", "value" => $division, "options" => $divisions]); ?>
+                </div>
+                <div class="col">
+                    <?php render_input(["name" => "limit", "type" => "number", "label" => "Limit", "value" => $limit]); ?>
                 </div>
             </div>
             <div class="row">

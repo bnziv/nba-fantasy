@@ -20,6 +20,9 @@ if ($id > 0) {
         error_log(var_export($r, true));
         if ($r) {
             $details = $r;
+        } else {
+            flash("Team not found", "danger");
+            die(header("Location: " . get_url("teams.php")));
         }
     } catch (PDOException $e) {
         error_log("Error fetching team details: " . var_export($e, true));
@@ -81,7 +84,7 @@ if ($id > 0) {
             "Arena" => $game["arena"]];
     }, $games);
 
-    $games_table = ["data" => $data, "title" => "Next/Last 5 Games"];
+    $games_table = ["data" => $data, "title" => "Next/Last 5 Games", "empty_message" => "No games found"];
 
     $playersQuery = "SELECT CONCAT(p.first_name, \" \", p.last_name) AS name, p.height, p.weight, p.jersey_number FROM players p 
     JOIN teams t ON t.id = p.team_id WHERE t.id = :id ORDER BY p.last_name";
@@ -104,9 +107,10 @@ if ($id > 0) {
             "Weight" => $player["weight"] ?? "N/A",
             "Jersey" => $player["jersey_number"] ?? "N/A"];
     }, $players);
-    $players_table = ["data" => $players, "title" => "Players"];
+    $players_table = ["data" => $players, "title" => "Players", "empty_message" => "No players found"];
 } else {
     flash("Invalid team", "danger");
+    die(header("Location: " . get_url("teams.php")));
 }
 ?>
 

@@ -29,6 +29,14 @@ switch ($type) {
         $query .= " ORDER BY division_rank $order";
         break;
 }
+$limit = 10;
+if (isset($_GET["limit"]) && !is_nan($_GET["limit"])) {
+    $limit = $_GET["limit"];
+    if ($limit < 0 || $limit > 100) {
+        $limit = 10;
+    }
+}
+$query .= " LIMIT $limit";
 $db = getDB();
 $stmt = $db->prepare($query);
 $results = [];
@@ -78,6 +86,9 @@ $types = [
                 </div>
                 <div class="col">
                     <?php render_input(["name" => "order", "type" => "select", "label" => "Order", "value" => $order, "options" => [["asc" => "Ascending"], ["desc" => "Descending"]]]); ?>
+                </div>
+                <div class="col">
+                    <?php render_input(["name" => "limit", "type" => "number", "label" => "Limit", "value" => $limit]); ?>
                 </div>
             <div class="row">
                 <div class="col">

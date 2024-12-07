@@ -1,7 +1,6 @@
 <?php
-//note we need to go up 1 more directory
 require(__DIR__ . "/../../../partials/nav.php");
-
+//bv249 12/6
 if (!has_role("Admin")) {
     flash("You don't have permission to view this page", "warning");
     die(header("Location: $BASE_PATH" . "/home.php"));
@@ -41,7 +40,12 @@ if (isset($_POST["action"]) && $_POST["action"] !== "fetch_all") {
     }
     if (!empty($team)) {
         try {
-            $result = insert("teams", $team);
+            if ($action === "create") {
+                $result = insert("teams", $team);
+            } else {
+                $opts = ["update_duplicate" => true];
+                $result = insert("teams", $team, $opts);
+            }
             if (!$result) {
                 flash("Unhandled error", "warning");
             } else {
@@ -135,8 +139,6 @@ $divisions = get_divisions();
 $divisions = array_map(function ($v) {
     return [$v["division"] => $v["division"]];
 }, $divisions);
-error_log("Conferences: " . var_export($conferences, true));
-error_log("Divisions: " . var_export($divisions, true));
 
 ?>
 <div class="container-fluid">
