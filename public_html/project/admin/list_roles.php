@@ -20,8 +20,9 @@ if (isset($_POST["role_id"])) {
         }
     }
 }
-$query = "SELECT id, name, description, is_active from Roles";
+$query = "SELECT id, name, description, if(is_active, 'Active', 'Disabled') from Roles";
 $params = null;
+$search = "";
 if (isset($_POST["role"])) {
     $search = se($_POST, "role", "", false);
     $query .= " WHERE name LIKE :role";
@@ -43,47 +44,19 @@ try {
     flash(var_export($e->errorInfo, true), "danger");
 }
 
+$table = ["data" => $roles, "post_self_form" => ["name" => "role_id", "label" => "Toggle", "classes" => "btn btn-primary", ],
+    "header_override" => ["ID", "Name", "Description", "Active"]];
+
 ?>
+<div class="container-fluid">
 <h1>List Roles</h1>
-<form method="POST">
-    <input type="search" name="role" placeholder="Role Filter" value="<?php se($_POST, "role");?>" />
-    <input type="submit" value="Search" />
-</form>
-<table>
-    <thead>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Active</th>
-        <th>Action</th>
-    </thead>
-    <tbody>
-        <?php if (empty($roles)) : ?>
-            <tr>
-                <td colspan="100%">No roles</td>
-            </tr>
-        <?php else : ?>
-            <?php foreach ($roles as $role) : ?>
-                <tr>
-                    <td><?php se($role, "id"); ?></td>
-                    <td><?php se($role, "name"); ?></td>
-                    <td><?php se($role, "description"); ?></td>
-                    <td><?php echo (se($role, "is_active", 0, false) ? "active" : "disabled"); ?></td>
-                    <td>
-                        <form method="POST">
-                            <input type="hidden" name="role_id" value="<?php se($role, 'id'); ?>" />
-                            <?php if (isset($search) && !empty($search)) : ?>
-                                <?php /* if this is part of a search, lets persist the search criteria so it reloads correctly*/ ?>
-                                <input type="hidden" name="role" value="<?php se($search, null); ?>" />
-                            <?php endif; ?>
-                            <input type="submit" value="Toggle" />
-                        </form>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </tbody>
-</table>
+    <form method="POST">
+    <?php render_input(["type" => "search", "name" => "role", "placeholder" => "Role Filter", "value"=>$search]);/*lazy value to check if form submitted, not ideal*/ ?>
+    <?php render_button(["text" => "Search", "type" => "submit"]); ?>
+    </form>
+    <?php render_table($table); ?>
+    
+</div>
 <?php
 //note we need to go up 1 more directory
 require_once(__DIR__ . "/../../../partials/flash.php");

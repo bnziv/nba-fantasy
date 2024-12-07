@@ -1,6 +1,5 @@
 <?php
 require_once(__DIR__ . "/../../partials/nav.php");
-//bv249 11/11
 if (!is_logged_in(true)) {
     flash("You must be logged in to view this page", "warning");
     die(header("Location: login.php"));
@@ -102,32 +101,19 @@ if (isset($_POST["save"])) {
 $email = get_user_email();
 $username = get_username();
 ?>
-<form method="POST" onsubmit="return validate(this);">
-    <div class="mb-3">
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" value="<?php se($email); ?>" />
-    </div>
-    <div class="mb-3">
-        <label for="username">Username</label>
-        <input type="text" name="username" id="username" value="<?php se($username); ?>" />
-    </div>
-    <!-- DO NOT PRELOAD PASSWORD -->
-    <div>Password Reset</div>
-    <div class="mb-3">
-        <label for="cp">Current Password</label>
-        <input type="password" name="currentPassword" id="cp" />
-    </div>
-    <div class="mb-3">
-        <label for="np">New Password</label>
-        <input type="password" name="newPassword" id="np" />
-    </div>
-    <div class="mb-3">
-        <label for="conp">Confirm Password</label>
-        <input type="password" name="confirmPassword" id="conp" />
-    </div>
-    <input type="submit" value="Update Profile" name="save" />
-</form>
-
+<div class="container-fluid">
+    <form method="POST" onsubmit="return validate(this);">
+        <?php render_input(["type" => "email", "id" => "email", "name" => "email", "label" => "Email", "value" => $email, "rules" => ["required" => true]]); ?>
+        <?php render_input(["type" => "text", "id" => "username", "name" => "username", "label" => "Username", "value" => $username, "rules" => ["required" => true, "minlength" => 3, "maxlength" => 30]]); ?>
+        <!-- DO NOT PRELOAD PASSWORD -->
+        <h4>Password Reset</h4>
+        <?php render_input(["type" => "password", "id" => "cp", "name" => "currentPassword", "label" => "Current Password", "rules" => ["minlength" => 8]]); ?>
+        <?php render_input(["type" => "password", "id" => "np", "name" => "newPassword", "label" => "New Password", "rules" => ["minlength" => 8]]); ?>
+        <?php render_input(["type" => "password", "id" => "conp", "name" => "confirmPassword", "label" => "Confirm Password", "rules" => ["minlength" => 8]]); ?>
+        <?php render_input(["type" => "hidden", "name" => "save"]); ?>
+        <?php render_button(["text" => "Update Profile", "type" => "submit"]); ?>
+    </form>
+</div>
 <script>
     function validate(form) {
         document.getElementById("flash").innerHTML = "";
