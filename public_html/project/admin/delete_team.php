@@ -6,7 +6,6 @@ if (!has_role("Admin")) {
     die(header("Location: $BASE_PATH" . "/home.php"));
 }
 $id = se($_GET, "id", -1, false);
-
 if ($id > 0) {
     $db = getDB();
     try {
@@ -18,9 +17,9 @@ if ($id > 0) {
         flash("There was an error deleting the record", "danger");
     }
 } else {
-    flash("Invalid id passed", "danger");
+    flash("Invalid team", "danger");
 }
 unset($_GET["id"]);
-$loc = get_url("admin/list_teams.php")."?" . http_build_query($_GET);
+$loc = get_url("teams.php")."?" . http_build_query($_GET);
 error_log("Location: $loc");
 die(header("Location: $loc"));
