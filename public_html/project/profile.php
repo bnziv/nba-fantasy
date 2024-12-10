@@ -1,12 +1,20 @@
 <?php
 require_once(__DIR__ . "/../../partials/nav.php");
-if (!is_logged_in(true)) {
-    flash("You must be logged in to view this page", "warning");
-    die(header("Location: login.php"));
+//is_logged_in(true);
+$user_id = -1;
+try {
+    $user_id = (int)se($_GET, "id", -1, false);
+} catch (Exception $e) {
+    //we know it's a data format issue
 }
+if ($user_id < 1) {
+    $user_id = get_user_id(); //get our id if we're logged in
+}
+$is_me = $user_id == get_user_id();
+$is_edit = isset($_GET["edit"]);
 ?>
 <?php
-if (isset($_POST["save"])) {
+if ($is_me && $is_edit && isset($_POST["save"])) {
     $email = se($_POST, "email", null, false);
     $username = se($_POST, "username", null, false);
     $hasError = false;
@@ -30,9 +38,6 @@ if (isset($_POST["save"])) {
             flash("Profile saved", "success");
         } catch (PDOException $e) {
             users_check_duplicate($e->errorInfo);
-        } catch (Exception $e) {
-            flash("An unexpected error occurred, please try again", "danger");
-            //echo "<pre>" . var_export($e->errorInfo, true) . "</pre>";
         }
         //select fresh data from table
         $stmt = $db->prepare("SELECT id, email, username from Users where id = :id LIMIT 1");
@@ -65,7 +70,6 @@ if (isset($_POST["save"])) {
         }
         if (!$hasError) {
             if ($new_password === $confirm_password) {
-                //TODO validate current
                 $stmt = $db->prepare("SELECT password from Users where id = :id");
                 try {
                     $stmt->execute([":id" => get_user_id()]);
@@ -86,8 +90,6 @@ if (isset($_POST["save"])) {
                     }
                 } catch (PDOException $e) {
                     echo "<pre>" . var_export($e->errorInfo, true) . "</pre>";
-                } catch (Exception $e) {
-                    echo "<pre>" . var_export($e, true) . "</pre>";
                 }
             } else {
                 flash("New passwords don't match", "warning");
@@ -98,21 +100,106 @@ if (isset($_POST["save"])) {
 ?>
 
 <?php
-$email = get_user_email();
-$username = get_username();
+$user = [];
+if ($user_id > 0) {
+    $db = getDB();
+    $query = "SELECT email, username, created FROM Users where id = :user_id";
+    try {
+        $stmt = $db->prepare($query);
+        $stmt->execute([":user_id" => $user_id]);
+        $r = $stmt->fetch();
+        if ($r) {
+            $user = $r;
+        } else {
+            flash("Couldn't find user profile", "warning");
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching user: " . var_export($e, true));
+        flash("Error fetching user", "danger");
+    }
+}
+$teamsQuery = "SELECT t.name as 'Name' FROM  teams t JOIN favorite_teams ft ON t.id = ft.team_id WHERE ft.user_id = :user_id";
+$teams = [];
+if ($user_id > 0) {
+    $db = getDB();
+    try {
+        $stmt = $db->prepare($teamsQuery);
+        $stmt->execute([":user_id" => $user_id]);
+        $teams = $stmt->fetchAll();
+        if ($teams) {
+            $teams = $teams;
+        } else {
+            $teams = [];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching teams: " . var_export($e, true));
+        flash("Error fetching teams", "danger");
+    }
+}
+$teams_table = [
+    "data" => $teams,
+    "empty_message" => "No teams favorited",
+    "title" => "Favorite Teams",
+];
+
+$playersQuery = "SELECT CONCAT(p.first_name, \" \", p.last_name) AS Name, t.name as Team FROM players p
+JOIN favorite_players fp ON fp.player_id = p.id JOIN teams t ON t.id = p.team_id WHERE fp.user_id = :user_id";
+$players = [];
+if ($user_id > 0) {
+    $db = getDB();
+    try {
+        $stmt = $db->prepare($playersQuery);
+        $stmt->execute([":user_id" => $user_id]);
+        $players = $stmt->fetchAll();
+        if ($players) {
+            $players = $players;
+        } else {
+            $players = [];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching players: " . var_export($e, true));
+        flash("Error fetching players", "danger");
+    }
+}
+$players_table = [
+    "data" => $players,
+    "empty_message" => "No players favorited",
+    "title" => "Favorite Players"
+]
+
 ?>
 <div class="container-fluid">
-    <form method="POST" onsubmit="return validate(this);">
-        <?php render_input(["type" => "email", "id" => "email", "name" => "email", "label" => "Email", "value" => $email, "rules" => ["required" => true]]); ?>
-        <?php render_input(["type" => "text", "id" => "username", "name" => "username", "label" => "Username", "value" => $username, "rules" => ["required" => true, "minlength" => 3, "maxlength" => 30]]); ?>
-        <!-- DO NOT PRELOAD PASSWORD -->
-        <h4>Password Reset</h4>
-        <?php render_input(["type" => "password", "id" => "cp", "name" => "currentPassword", "label" => "Current Password", "rules" => ["minlength" => 8]]); ?>
-        <?php render_input(["type" => "password", "id" => "np", "name" => "newPassword", "label" => "New Password", "rules" => ["minlength" => 8]]); ?>
-        <?php render_input(["type" => "password", "id" => "conp", "name" => "confirmPassword", "label" => "Confirm Password", "rules" => ["minlength" => 8]]); ?>
-        <?php render_input(["type" => "hidden", "name" => "save"]); ?>
-        <?php render_button(["text" => "Update Profile", "type" => "submit"]); ?>
-    </form>
+    <?php if ($is_me && $is_edit) : ?>
+        <a class="btn btn-secondary btn-sm" href="?">View</a>
+        <form method="POST" onsubmit="return validate(this);">
+            <?php render_input(["type" => "email", "id" => "email", "name" => "email", "label" => "Email", "value" => se($user, "email", "", false), "rules" => ["required" => true]]); ?>
+            <?php render_input(["type" => "text", "id" => "username", "name" => "username", "label" => "Username", "value" => se($user, "username", "", false), "rules" => ["required" => true, "maxlength" => 30]]); ?>
+            <div class="lead">Password Reset</div>
+            <?php render_input(["type" => "password", "id" => "cp", "name" => "currentPassword", "label" => "Current Password", "rules" => ["minlength" => 8]]); ?>
+            <?php render_input(["type" => "password", "id" => "np", "name" => "newPassword", "label" => "New Password", "rules" => ["minlength" => 8]]); ?>
+            <?php render_input(["type" => "password", "id" => "conp", "name" => "confirmPassword", "label" => "Confirm Password", "rules" => ["minlength" => 8]]); ?>
+            <?php render_input(["type" => "hidden", "name" => "save"]);/*lazy value to check if form submitted, not ideal*/ ?>
+            <?php render_button(["text" => "Update Profile", "type" => "submit"]); ?>
+        </form>
+    <?php else : ?>
+        <?php if ($is_me) : ?>
+            <a class="btn btn-secondary btn-sm" href="?edit">Edit</a>
+        <?php endif; ?>
+        <div class="card">
+            <div class="card-body">
+                <div class="h4">Username: <?php se($user, "username"); ?></div>
+                <div class="text-body">Joined: <?php se($user, "created"); ?></div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-2">
+                <?php render_table($teams_table); ?>
+            </div>
+            <div class="col-md-3">
+                <?php render_table($players_table); ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 <script>
     function validate(form) {
