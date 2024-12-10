@@ -86,7 +86,7 @@ if ($id > 0) {
 
     $games_table = ["data" => $data, "title" => "Next/Last 5 Games", "empty_message" => "No games found"];
 
-    $playersQuery = "SELECT CONCAT(p.first_name, \" \", p.last_name) AS name, p.height, p.weight, p.jersey_number FROM players p 
+    $playersQuery = "SELECT p.id, CONCAT(p.first_name, \" \", p.last_name) AS name, p.height, p.weight, p.jersey_number FROM players p 
     JOIN teams t ON t.id = p.team_id WHERE t.id = :id ORDER BY p.last_name";
     try {
         $db = getDB();
@@ -102,12 +102,15 @@ if ($id > 0) {
     }
     $players = array_map(function ($player) {
         return [
+            "id" => $player["id"],
             "Name" => $player["name"],
             "Height" => $player["height"] ?? "N/A",
             "Weight" => $player["weight"] ?? "N/A",
             "Jersey" => $player["jersey_number"] ?? "N/A"];
     }, $players);
-    $players_table = ["data" => $players, "title" => "Players", "empty_message" => "No players found"];
+    $favorite_players = get_favorites("player", get_user_id());
+    $players_table = ["data" => $players, "title" => "Players", "empty_message" => "No players found", "ignored_columns" => "id",
+        "favorite_url" => get_url("update_favorite.php"), "favorite_type" => "player", "favorites" => $favorite_players];
 } else {
     flash("Invalid team", "danger");
     die(header("Location: " . get_url("teams.php")));
@@ -115,31 +118,59 @@ if ($id > 0) {
 ?>
 
 <div class="container-fluid">
+    <ul id="tabs" class="nav nav-pills justify-content-center">
+        <li class="nav-item" style="margin-right: 20px">
+            <a class="nav-link active" href="#" onclick="switchTab('games')">Games</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="switchTab('players')">Players</a>
+        </li>
+    </ul>
+
     <div class="row">
-    <div class="col-md-2">
-    <?php if($details):?>
-        <?php card($details);?>
-    <?php endif;?>
-    </div>
-    <div class="col-md-8">
-    <?php if($games):?>
-        <?php render_table($games_table);?>
-    <?php endif;?>
-    </div>
-    </div>
-    <div class="row">
-    <?php if ($id > 0 && has_role("Admin")): ?>
-        <div class="col-md-2" style="text-align: center; margin-top: 20px">
-            <a href="<?php se(get_url("admin/edit_team.php"));?>?id=<?php echo $id;?>" class="btn btn-secondary">Edit Team</a>
-            <a href="<?php se(get_url("admin/delete_team.php"));?>?id=<?php echo $id;?>" class="btn btn-danger">Delete Team</a>
+        <div class="col-md-2">
+            <div class="d-flex flex-column">
+                <?php if($details):?>
+                    <?php card($details); ?>
+                <?php endif; ?>
+                
+                <?php if ($id > 0 && has_role("Admin")): ?>
+                    <div class="mt-3">
+                        <a href="<?php se(get_url('admin/edit_team.php')); ?>?id=<?php echo $id;?>" class="btn btn-secondary btn-block">Edit Team</a>
+                        <a href="<?php se(get_url('admin/delete_team.php')); ?>?id=<?php echo $id;?>" class="btn btn-danger btn-block">Delete Team</a>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
-    <?php endif; ?>
-        <div class="col-md-8 <?php if (!has_role("Admin")): echo "offset-md-2"; endif; ?>">
-            <?php if($players):?>
-                <?php render_table($players_table);?>
-            <?php endif;?>
+        
+        <div id="games" class="col-md-8 tab-target">
+            <?php if($games): ?>
+                <?php render_table($games_table); ?>
+            <?php endif; ?>
+        </div>
+        <div id="players" class="col-md-8 tab-target" style="display:none;">
+            <?php if($players): ?>
+                <?php render_table($players_table); ?>
+            <?php endif; ?>
         </div>
     </div>
 </div>
+
+<script>
+    function switchTab(tab) {
+        let target = document.getElementById(tab);
+        if (target) {
+            let eles = document.getElementsByClassName("tab-target");
+            for (let ele of eles) {
+                ele.style.display = (ele.id === tab) ? "block" : "none";
+            }
+
+            let navLinks = document.querySelectorAll("#tabs .nav-link");
+            navLinks.forEach(link => link.classList.remove("active"));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add("active");
+        }
+    }
+</script>
+
 <?php 
 require_once(__DIR__ . "/../../partials/flash.php");

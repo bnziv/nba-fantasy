@@ -119,6 +119,8 @@ function get_games_for_date($date) {
         $r = $stmt->fetchAll();
         if ($r) {
             $games = $r;
+        } else {
+            $games = [];
         }
     } catch (PDOException $e) {
         error_log("Error fetching games: " . var_export($e, true));
@@ -150,6 +152,40 @@ function get_games_for_date($date) {
             "Arena" => $game["arena"]];
     }, $games);
     return $games;
+}
+
+/**
+ * Get favorites for a user
+ * 
+ * @param string $type The type of favorite (team or player)
+ * @param int $userId The ID of the user
+ */
+function get_favorites($type, $userId) {
+    if ($type == "team") {
+        $query = "SELECT team_id FROM favorite_teams WHERE user_id = :userId";
+        $key = "team_id";
+    } else if ($type == "player") {
+        $query = "SELECT player_id FROM favorite_players WHERE user_id = :userId";
+        $key = "player_id";
+    } else {
+        return [];
+    }
+
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute([":userId" => $userId]);
+        $r = $stmt->fetchAll();
+        if ($r) {
+            return array_map(function ($v) use ($key) {
+                return $v[$key];
+            }, $r);
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching favorites: " . var_export($e, true));
+        flash("Error fetching favorites", "danger");
+    }
+    return [];
 }
 
 function card($data = array()) {
