@@ -18,6 +18,8 @@
     $_delete_classes = se($data, "delete_classes", "btn btn-danger", false);
     $_primary_key_column = se($data, "primary_key", "id", false); // used for the url generation
     $_fetch_url = se($data, "fetch_url", "", false);
+    $_favorite_url = se($data, "favorite_url", "", false);
+    $_favorites = (isset($data["favorites"])) ? $data["favorites"] : [];
     //TODO persist query params (future lesson)
     $params = $_GET;
     if (isset($params[$_primary_key_column])) {
@@ -83,6 +85,13 @@
                                 <?php endif; ?>
                                 <?php if ($_delete_url) : ?>
                                     <a href="<?php se($_delete_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="<?php se($_delete_classes); ?>"><?php se($_delete_label); ?></a>
+                                <?php endif; ?>
+                                <?php if ($_favorite_url) : ?>
+                                    <?php if (in_array($row[$_primary_key_column], $_favorites)) : ?>
+                                        <a href="<?php se($_favorite_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="btn btn-warning">Unfavorite</a>
+                                    <?php else : ?>
+                                        <a href="<?php se($_favorite_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="btn btn-success">Favorite</a>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                                 <?php if ($_post_self_form) : ?>
                                     <!-- TODO refactor -->
