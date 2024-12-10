@@ -11,6 +11,7 @@ $user_name = se($_GET, "username", "", false);
 $limit = se($_GET, "limit", 10, false);
 
 $query = "SELECT t.name AS 'Team Name', u.username AS 'Favorited By',
+(SELECT COUNT(*) from favorite_teams WHERE team_id = t.id) AS 'Number of Favorites',
 u.id as 'userid', t.id as 'teamid', ft.id as 'favoriteid'
 FROM favorite_teams ft
 JOIN teams t ON t.id = ft.team_id
@@ -33,7 +34,7 @@ if (isset($_GET["limit"]) && !is_nan($_GET["limit"])) {
         $limit = 10;
     }
 }
-
+$query .= " ORDER BY t.name";
 $query .= " LIMIT $limit";
 
 try {
@@ -51,8 +52,7 @@ try {
     flash("There was an error fetching favorites", "danger");
 }
 
-$title = "Favorites (" . count($results) . ")";
-$table = ["data" => $results, "title" => $title, "empty_message" => "No favorites to show", "extra_classes" => "table-hover"];
+$title = "User Favorites (" . count($results) . ")";
 
 ?>
 <div class="container-fluid">
@@ -78,29 +78,40 @@ $table = ["data" => $results, "title" => $title, "empty_message" => "No favorite
     </div>
     <div class="row">
         <div class="col-md-6 offset-md-3">
+        <h3><?php se($title); ?></h3>
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Team Name</th>
                     <th>Favorited By</th>
+                    <th>Number of Favorites</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($results as $row) : ?>
+                <?php if (!empty($results)) : ?>
+                    <?php foreach ($results as $row) : ?>
+                        <tr>
+                            <td>
+                                <?php se($row["Team Name"]); ?>
+                            </td>
+                            <td>
+                                <?php se($row["Favorited By"]); ?>
+                            </td>
+                            <td>
+                                <?php se($row["Number of Favorites"]); ?>
+                            </td>
+                            <td>
+                                <a href="<?php echo get_url("team_details.php"); ?>?id=<?php se($row["teamid"]); ?>" class="btn btn-primary">Details</a>
+                                <a href="<?php echo get_url("update_favorite.php"); ?>?id=<?php se($row["favoriteid"]); ?>" class="btn btn-danger">Remove</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else : ?>
                     <tr>
-                        <td>
-                            <?php se($row["Team Name"]); ?>
-                        </td>
-                        <td>
-                            <?php se($row["Favorited By"]); ?>
-                        </td>
-                        <td>
-                            <a href="<?php echo get_url("team_details.php"); ?>?id=<?php se($row["teamid"]); ?>" class="btn btn-primary">Details</a>
-                            <a href="<?php echo get_url("update_favorite.php"); ?>?id=<?php se($row["favoriteid"]); ?>" class="btn btn-danger">Remove</a>
-                        </td>
+                        <td colspan="4">No results found</td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
         </div>
