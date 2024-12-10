@@ -31,6 +31,6 @@ if ($team > 0) {
     flash("Invalid team", "danger");
 }
 unset($_GET["id"]);
-$loc = get_url("teams.php")."?" . http_build_query($_GET);
+$loc = get_url("favorites.php")."?" . http_build_query($_GET);
 error_log("Location: $loc");
 die(header("Location: $loc"));

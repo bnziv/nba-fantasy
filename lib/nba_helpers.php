@@ -119,6 +119,8 @@ function get_games_for_date($date) {
         $r = $stmt->fetchAll();
         if ($r) {
             $games = $r;
+        } else {
+            $games = [];
         }
     } catch (PDOException $e) {
         error_log("Error fetching games: " . var_export($e, true));

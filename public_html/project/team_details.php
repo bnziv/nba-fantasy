@@ -107,7 +107,8 @@ if ($id > 0) {
             "Weight" => $player["weight"] ?? "N/A",
             "Jersey" => $player["jersey_number"] ?? "N/A"];
     }, $players);
-    $favorite_players = get_favorites("player", get_user_id());
+    // $favorite_players = get_favorites("player", get_user_id());
+    $favorite_players = [];
     $players_table = ["data" => $players, "title" => "Players", "empty_message" => "No players found",
         "favorite_url" => get_url("favorite.php"), "favorite_type" => "player", "favorites" => $favorite_players];
 } else {
@@ -117,31 +118,62 @@ if ($id > 0) {
 ?>
 
 <div class="container-fluid">
-    <div class="row">
-    <div class="col-md-2">
-    <?php if($details):?>
-        <?php card($details);?>
-    <?php endif;?>
-    </div>
-    <div class="col-md-8">
-    <?php if($games):?>
-        <?php render_table($games_table);?>
-    <?php endif;?>
-    </div>
-    </div>
-    <div class="row">
-    <?php if ($id > 0 && has_role("Admin")): ?>
-        <div class="col-md-2" style="text-align: center; margin-top: 20px">
-            <a href="<?php se(get_url("admin/edit_team.php"));?>?id=<?php echo $id;?>" class="btn btn-secondary">Edit Team</a>
-            <a href="<?php se(get_url("admin/delete_team.php"));?>?id=<?php echo $id;?>" class="btn btn-danger">Delete Team</a>
+    <ul id="tabs" class="nav nav-pills justify-content-center">
+        <li class="nav-item" style="margin-right: 20px">
+            <a class="nav-link active" href="#" onclick="switchTab('games')">Games</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="switchTab('players')">Players</a>
+        </li>
+    </ul>
+
+    <div class="row mt-2">
+        <div class="col-md-2">
+            <?php if ($details): ?>
+                <?php card($details); ?>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
-        <div class="col-md-8 <?php if (!has_role("Admin")): echo "offset-md-2"; endif; ?>">
-            <?php if($players):?>
-                <?php render_table($players_table);?>
-            <?php endif;?>
+
+        <div class="col-md-10">
+            <div id="games" class="tab-target">
+                <?php if ($games): ?>
+                    <?php render_table($games_table); ?>
+                <?php endif; ?>
+            </div>
+
+            <div id="players" class="tab-target" style="display: none;">
+                <?php if ($players): ?>
+                    <?php render_table($players_table); ?>
+                <?php endif; ?>
+            </div>
         </div>
+    </div>
+
+    <div class="row mt-4">
+        <?php if ($id > 0 && has_role("Admin")): ?>
+            <div class="col-md-2 text-center">
+                <a href="<?php se(get_url("admin/edit_team.php")); ?>?id=<?php echo $id; ?>" class="btn btn-secondary">Edit Team</a>
+                <a href="<?php se(get_url("admin/delete_team.php")); ?>?id=<?php echo $id; ?>" class="btn btn-danger">Delete Team</a>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
+
+<script>
+    function switchTab(tab) {
+        let target = document.getElementById(tab);
+        if (target) {
+            let eles = document.getElementsByClassName("tab-target");
+            for (let ele of eles) {
+                ele.style.display = (ele.id === tab) ? "block" : "none";
+            }
+
+            let navLinks = document.querySelectorAll("#tabs .nav-link");
+            navLinks.forEach(link => link.classList.remove("active"));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add("active");
+        }
+    }
+</script>
+
 <?php 
 require_once(__DIR__ . "/../../partials/flash.php");
