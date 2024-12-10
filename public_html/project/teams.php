@@ -48,8 +48,12 @@ try {
     error_log("Error fetching teams " . var_export($e, true));
     flash("Unhandled error occurred", "danger");
 }
+
+$favorite_teams = get_favorites("team", get_user_id());
+
 $table = ["data" => $results, "title" => "Teams", "ignored_columns" => ["id"], "view_url" => get_url("team_details.php"), "view_label" => "Details",
-"empty_message" => "No teams to show", "extra_classes" => "table-hover"];
+"empty_message" => "No teams to show", "extra_classes" => "table-hover", 
+"favorites" => $favorite_teams, "favorite_url" => get_url("update_favorite.php"), "favorite_type" => "team"];
 if (has_role("Admin")) {
     $table["edit_url"] = get_url("admin/edit_team.php"); 
     $table["delete_url"] = get_url("admin/delete_team.php");

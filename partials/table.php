@@ -20,6 +20,7 @@
     $_fetch_url = se($data, "fetch_url", "", false);
     $_favorite_url = se($data, "favorite_url", "", false);
     $_favorites = (isset($data["favorites"])) ? $data["favorites"] : [];
+    $_favorite_type = se($data, "favorite_type", "", false);
     //TODO persist query params (future lesson)
     $params = $_GET;
     if (isset($params[$_primary_key_column])) {
@@ -88,9 +89,9 @@
                                 <?php endif; ?>
                                 <?php if ($_favorite_url) : ?>
                                     <?php if (in_array($row[$_primary_key_column], $_favorites)) : ?>
-                                        <a href="<?php se($_favorite_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="btn btn-warning">Unfavorite</a>
+                                        <a href="<?php se($_favorite_url); ?>?<?php se($_favorite_type); ?>=<?php se($row, $_primary_key_column); ?>" class="btn btn-secondary">Unfavorite</a>
                                     <?php else : ?>
-                                        <a href="<?php se($_favorite_url); ?>?<?php se($_primary_key_column); ?>=<?php se($row, $_primary_key_column); ?>&<?php se($qp); ?>" class="btn btn-success">Favorite</a>
+                                        <a href="<?php se($_favorite_url); ?>?<?php se($_favorite_type); ?>=<?php se($row, $_primary_key_column); ?>" class="btn btn-warning">Favorite</a>
                                     <?php endif; ?>
                                 <?php endif; ?>
                                 <?php if ($_post_self_form) : ?>

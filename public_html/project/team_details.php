@@ -107,7 +107,9 @@ if ($id > 0) {
             "Weight" => $player["weight"] ?? "N/A",
             "Jersey" => $player["jersey_number"] ?? "N/A"];
     }, $players);
-    $players_table = ["data" => $players, "title" => "Players", "empty_message" => "No players found"];
+    $favorite_players = get_favorites("player", get_user_id());
+    $players_table = ["data" => $players, "title" => "Players", "empty_message" => "No players found",
+        "favorite_url" => get_url("favorite.php"), "favorite_type" => "player", "favorites" => $favorite_players];
 } else {
     flash("Invalid team", "danger");
     die(header("Location: " . get_url("teams.php")));
