@@ -188,6 +188,69 @@ function get_favorites($type, $userId) {
     return [];
 }
 
+/**
+ * Update the standings and games
+ */
+function update_stats() {
+    $standings = fetch_standings();
+    try {
+        $opts = ["update_duplicate" => true];
+        $result = insert("standings", $standings, $opts);
+        if (!$result) {
+            error_log("Unhandled error" . var_export($result, true));
+        } else {
+            error_log("Updated standings");
+        }
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+    } catch (PDOException $e2) {
+        error_log("Database error" . var_export($e2, true));
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+    }
+    $games = fetch_games();
+    try {
+        $opts = ["update_duplicate" => true];
+        $result = insert("games", $games, $opts);
+        if (!$result) {
+            error_log("Unhandled error" . var_export($result, true));
+        } else {
+            error_log("Updated all games");
+        }
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+    } catch (PDOException $e2) {
+        error_log("Database error" . var_export($e2, true));
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+    }
+}
+
+/**
+ * Check if stats need to be updated (latest update is more than an hour ago)
+ */
+function check_update() {
+    $query = "SELECT modified FROM games ORDER BY modified DESC LIMIT 1";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($r) {
+            $last_modified = $r["modified"];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching last modified: " . var_export($e, true));
+        flash("Error fetching last modified", "danger");
+    }
+    $last_modified = new DateTime($last_modified, new DateTimeZone("UTC"));
+    $now = new DateTime("now", new DateTimeZone("UTC"));
+    $gap = $now->format("U") - $last_modified->format("U");
+    if ($gap > 3600) {
+        update_stats();
+    }
+}
+
 function card($data = array()) {
     include(__DIR__. "/../partials/card.php");
 }
