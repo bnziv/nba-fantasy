@@ -61,6 +61,8 @@ session_start();
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/list_teams.php'); ?>">List Teams</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/create_player.php'); ?>">Create Player</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('admin/fetch_data.php'); ?>">Fetch Data</a></li>
+                            <li><a class="dropdown-item" href="<?php echo get_url('admin/assign_favorites.php'); ?>">Assign Favorites</a></li>
+                            <li><a class="dropdown-item" href="<?php echo get_url('admin/view_favorites.php'); ?>">View Favorites</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>

@@ -96,8 +96,7 @@ $title = "User Favorites (" . count($results) . ")";
                                 <?php se($row["Team Name"]); ?>
                             </td>
                             <td>
-                                <?php se($row["Favorited By"]); ?>
-                            </td>
+                                <a href="<?php echo get_url("profile.php"); ?>?id=<?php se($row["userid"]); ?>"><?php se($row["Favorited By"]); ?></a>                            </td>
                             <td>
                                 <?php se($row["Number of Favorites"]); ?>
                             </td>
