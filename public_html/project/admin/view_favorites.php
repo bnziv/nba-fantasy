@@ -9,6 +9,7 @@ if (!has_role("Admin")) {
 $team_name = se($_GET, "teamname", "", false);
 $user_name = se($_GET, "username", "", false);
 $limit = se($_GET, "limit", 10, false);
+$type = se($_GET, "type", "favorites", false);
 
 $query = "SELECT t.name AS 'Team Name', u.username AS 'Favorited By',
 (SELECT COUNT(*) from favorite_teams WHERE team_id = t.id) AS 'Number of Favorites',
@@ -54,69 +55,163 @@ try {
 
 $title = "User Favorites (" . count($results) . ")";
 
+$nonquery = "SELECT t.name AS 'Team Name', t.conference as 'Conference',t.id
+FROM teams t
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM favorite_teams ft 
+    WHERE ft.team_id = t.id
+)";
+$nonParams = [];
+if ($type == "nonfavorites") {
+    if (!empty($team_name)) {
+        $nonquery .= " AND t.name LIKE :teamname";
+        $nonParams[":teamname"] = "%$team_name%";
+    }
+}
+$nonquery .= " ORDER BY t.name";
+$nonquery .= " LIMIT $limit";
+
+try {
+    $db = getDB();
+    $stmt = $db->prepare($nonquery);
+    $stmt->execute($nonParams);
+    $r = $stmt->fetchAll();
+    if ($r) {
+        $nonresults = $r;
+    } else {
+        $nonresults = [];
+    }
+} catch (PDOException $e) {
+    error_log("Error fetching nonfavorites: " . var_export($e, true));
+    flash("There was an error fetching nonfavorites", "danger");
+}
+$nontable = [
+    "data" => $nonresults,
+    "title" => "Non Favorites (" . count($nonresults) . ")",
+    "empty_message" => "No non-favorites found",
+    "ignored_columns" => ["id"],
+    "view_url" => get_url("team_details.php"),
+    "view_label" => "Details"
+]
+
 ?>
 <div class="container-fluid">
-    <div>
+    <ul id="tabs" class="nav nav-pills justify-content-center">
+        <li class="nav-item" style="margin-right: 20px">
+            <a class="nav-link <?php echo $type == "favorites" ? "active" : "" ?>" href="#" onclick="switchTab('favorites')">User Favorites</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo $type == "nonfavorites" ? "active" : "" ?>" href="#" onclick="switchTab('nonfavorites')">Non Favorites</a>
+        </li>
+    </ul>
+    <div id="favorites" class="tab-target">
+        <div>
+            <form>
+                <div class="row mt-3">
+                    <div class="col">
+                        <?php render_input(["name" => "teamname", "type" => "text", "label" => "Team Name", "value" => $team_name]); ?>
+                    </div>
+                    <div class="col">
+                        <?php render_input(["name" => "username", "type" => "text", "label" => "User Name", "value" => $user_name]); ?>
+                    </div>
+                    <div class="col">
+                        <?php render_input(["name" => "limit", "type" => "number", "label" => "Limit", "value" => $limit]); ?>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <?php render_input(["type" => "hidden", "name" => "type", "value" => "favorites"]); ?>
+                        <?php render_button(["type" => "submit", "text" => "Search"]); ?>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+            <h3><?php se($title); ?></h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Favorited By</th>
+                        <th>Number of Favorites</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($results)) : ?>
+                        <?php foreach ($results as $row) : ?>
+                            <tr>
+                                <td>
+                                    <?php se($row["Team Name"]); ?>
+                                </td>
+                                <td>
+                                    <a href="<?php echo get_url("profile.php"); ?>?id=<?php se($row["userid"]); ?>"><?php se($row["Favorited By"]); ?></a>                            </td>
+                                <td>
+                                    <?php se($row["Number of Favorites"]); ?>
+                                </td>
+                                <td>
+                                    <a href="<?php echo get_url("team_details.php"); ?>?id=<?php se($row["teamid"]); ?>" class="btn btn-primary">Details</a>
+                                    <a href="<?php echo get_url("update_favorite.php"); ?>?id=<?php se($row["favoriteid"]); ?>" class="btn btn-danger">Remove</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr>
+                            <td colspan="4">No results found</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+    <div id="nonfavorites" class="tab-target" style="display: none;">
         <form>
-            <div class="row">
-                <div class="col">
+            <div class="row mt-3">
+                <div class="col" style="">
                     <?php render_input(["name" => "teamname", "type" => "text", "label" => "Team Name", "value" => $team_name]); ?>
                 </div>
-                <div class="col">
-                    <?php render_input(["name" => "username", "type" => "text", "label" => "User Name", "value" => $user_name]); ?>
-                </div>
-                <div class="col">
+                <div class="col" style="">
                     <?php render_input(["name" => "limit", "type" => "number", "label" => "Limit", "value" => $limit]); ?>
                 </div>
             </div>
             <div class="row">
                 <div class="col">
+                    <?php render_input(["type" => "hidden", "name" => "type", "value" => "nonfavorites"]); ?>
                     <?php render_button(["type" => "submit", "text" => "Search"]); ?>
                 </div>
             </div>
         </form>
-    </div>
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-        <h3><?php se($title); ?></h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Team Name</th>
-                    <th>Favorited By</th>
-                    <th>Number of Favorites</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($results)) : ?>
-                    <?php foreach ($results as $row) : ?>
-                        <tr>
-                            <td>
-                                <?php se($row["Team Name"]); ?>
-                            </td>
-                            <td>
-                                <a href="<?php echo get_url("profile.php"); ?>?id=<?php se($row["userid"]); ?>"><?php se($row["Favorited By"]); ?></a>                            </td>
-                            <td>
-                                <?php se($row["Number of Favorites"]); ?>
-                            </td>
-                            <td>
-                                <a href="<?php echo get_url("team_details.php"); ?>?id=<?php se($row["teamid"]); ?>" class="btn btn-primary">Details</a>
-                                <a href="<?php echo get_url("update_favorite.php"); ?>?id=<?php se($row["favoriteid"]); ?>" class="btn btn-danger">Remove</a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr>
-                        <td colspan="4">No results found</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <div style="width:50%; margin: auto;">
+            <?php render_table($nontable); ?>
         </div>
     </div>
 </div>
+<script>
 
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+        
+        switchTab(type || 'teams');
+    });
+
+    function switchTab(tab) {
+        let target = document.getElementById(tab);
+        if (target) {
+            let eles = document.getElementsByClassName("tab-target");
+            for (let ele of eles) {
+                ele.style.display = (ele.id === tab) ? "block" : "none";
+            }
+
+            let navLinks = document.querySelectorAll("#tabs .nav-link");
+            navLinks.forEach(link => link.classList.remove("active"));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add("active");
+        }
+    }
+</script>
 <?php
 require(__DIR__. "/../../../partials/flash.php");
 ?>
