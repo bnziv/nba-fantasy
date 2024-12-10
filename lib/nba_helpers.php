@@ -163,8 +163,10 @@ function get_games_for_date($date) {
 function get_favorites($type, $userId) {
     if ($type == "team") {
         $query = "SELECT team_id FROM favorite_teams WHERE user_id = :userId";
+        $key = "team_id";
     } else if ($type == "player") {
         $query = "SELECT player_id FROM favorite_players WHERE user_id = :userId";
+        $key = "player_id";
     } else {
         return [];
     }
@@ -175,8 +177,8 @@ function get_favorites($type, $userId) {
         $stmt->execute([":userId" => $userId]);
         $r = $stmt->fetchAll();
         if ($r) {
-            return array_map(function ($v) {
-                return $v["team_id"];
+            return array_map(function ($v) use ($key) {
+                return $v[$key];
             }, $r);
         }
     } catch (PDOException $e) {

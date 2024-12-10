@@ -27,8 +27,27 @@ if ($team > 0) {
         error_log("Error updating favorites: " . var_export($e, true));
         flash("There was an error updating favorites", "danger");
     }
+} else if ($player > 0) {
+    $db = getDB();
+    try {
+        $stmt = $db->prepare("SELECT id FROM favorite_players WHERE user_id = :user_id AND player_id = :player_id");
+        $stmt->execute([":user_id" => $user, ":player_id" => $player]);
+        $favorite = $stmt->fetch();
+        if ($favorite) {
+            $stmt = $db->prepare("DELETE FROM favorite_players WHERE id = :id");
+            $stmt->execute([":id" => $favorite["id"]]);
+            flash("Removed from favorites", "success");
+        } else {
+            $stmt = $db->prepare("INSERT INTO favorite_players (user_id, player_id) VALUES (:user_id, :player_id)");
+            $stmt->execute([":user_id" => $user, ":player_id" => $player]);
+            flash("Added to favorites", "success");
+        }
+    } catch (PDOException $e) {
+        error_log("Error updating favorites: " . var_export($e, true));
+        flash("There was an error updating favorites", "danger");
+    }
 } else {
-    flash("Invalid team", "danger");
+    flash("Invalid id", "danger");
 }
 unset($_GET["id"]);
 $loc = get_url("favorites.php")."?" . http_build_query($_GET);

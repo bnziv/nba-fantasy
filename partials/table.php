@@ -30,7 +30,7 @@
     // edge case that should consider a redesign
     $_post_self_form = isset($data["post_self_form"]) ? $data["post_self_form"] : [];
     // end edge case
-    $_has_atleast_one_url = $_view_url || $_edit_url || $_delete_url || $_post_self_form || $_fetch_url;
+    $_has_atleast_one_url = $_view_url || $_edit_url || $_delete_url || $_post_self_form || $_fetch_url || $_favorite_url;
     $_empty_message = se($data, "empty_message", "No records to show", false);
     $_header_override = isset($data["header_override"]) ? $data["header_override"] : []; // note: this is as csv string or an array
     // assumes csv list; explodes to array
