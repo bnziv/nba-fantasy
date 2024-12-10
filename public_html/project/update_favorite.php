@@ -5,9 +5,10 @@ if (!is_logged_in()) {
     flash("You are not logged in", "warning");
     die(header("Location: $BASE_PATH" . "/home.php"));
 }
-$user = get_user_id();
+$user = se($_GET, "user", get_user_id(), false);
 $team = se($_GET, "team", -1, false);
 $player = se($_GET, "player", -1, false);
+$favorite_id = se($_GET, "id", -1, false);
 if ($team > 0) {
     $db = getDB();
     try {
@@ -46,10 +47,21 @@ if ($team > 0) {
         error_log("Error updating favorites: " . var_export($e, true));
         flash("There was an error updating favorites", "danger");
     }
+} else if ($favorite_id > 0) {
+    $db = getDB();
+    try {
+        $stmt = $db->prepare("DELETE FROM favorite_teams WHERE id = :id");
+        $stmt->execute([":id" => $favorite_id]);
+        flash("Removed from favorites", "success");
+    } catch (PDOException $e) {
+        error_log("Error updating favorites: " . var_export($e, true));
+        flash("There was an error updating favorites", "danger");
+    }
 } else {
     flash("Invalid id", "danger");
 }
+
 unset($_GET["id"]);
-$loc = get_url("favorites.php")."?" . http_build_query($_GET);
-error_log("Location: $loc");
-die(header("Location: $loc"));
+$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : get_url("home.php");
+error_log("Location: $referer");
+die(header("Location: $referer"));
