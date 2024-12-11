@@ -48,14 +48,18 @@ if ($team > 0) {
         flash("There was an error updating favorites", "danger");
     }
 } else if ($favorite_id > 0) {
-    $db = getDB();
-    try {
-        $stmt = $db->prepare("DELETE FROM favorite_teams WHERE id = :id");
-        $stmt->execute([":id" => $favorite_id]);
-        flash("Removed from favorites", "success");
-    } catch (PDOException $e) {
-        error_log("Error updating favorites: " . var_export($e, true));
-        flash("There was an error updating favorites", "danger");
+    if (has_role("Admin")) {
+        $db = getDB();
+        try {
+            $stmt = $db->prepare("DELETE FROM favorite_teams WHERE id = :id");
+            $stmt->execute([":id" => $favorite_id]);
+            flash("Removed from favorites", "success");
+        } catch (PDOException $e) {
+            error_log("Error updating favorites: " . var_export($e, true));
+            flash("There was an error updating favorites", "danger");
+        }
+    } else {
+        flash("You do not have permission to do that", "warning");
     }
 } else {
     flash("Invalid id", "danger");

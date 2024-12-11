@@ -5,7 +5,6 @@ if (!is_logged_in()) {
     die(header("Location: $BASE_PATH" . "/home.php"));
 }
 $name = se($_GET, "name", "", false);
-$code = se($_GET, "code", "", false);
 $conference = se($_GET, "conference", "", false);
 $division = se($_GET, "division", "", false);
 $team = se($_GET, "team", "", false);
@@ -81,7 +80,7 @@ $teams_table = ["data" => $favorite_teams, "title" => $teamTitle, "empty_message
 "ignored_columns" => ["id"], "view_url" => get_url("team_details.php"), "view_label" => "Details",
 "favorite_url" => get_url("update_favorite.php"), "favorite_type" => "team", "favorites" => $favorite_team_ids];
 
-$playersQuery = "SELECT p.id, CONCAT(p.first_name, \" \", p.last_name) AS Name, t.name, p.height as Height, p.weight as Weight, p.jersey_number as Jersey FROM players p 
+$playersQuery = "SELECT p.id, CONCAT(p.first_name, \" \", p.last_name) AS Name, t.name as Team, p.height as Height, p.weight as Weight, p.jersey_number as Jersey FROM players p 
 JOIN favorite_players fp ON fp.player_id = p.id JOIN teams t ON t.id = p.team_id WHERE fp.user_id = :user_id";
 
 if ($type == "players") {
@@ -145,8 +144,9 @@ array_push($teams, ["" => "None"]);
     </ul>
     <div id="teams" class="tab-target">
         <div style="margin-top: 20px">
+            <h3>Total Favorite Teams: <?php echo count($favorite_team_ids); ?></h3>
             <form>
-                <div class="row">
+                <div class="row mt-4">
                     <div class="col">
                         <?php render_input(["name" => "name", "type" => "text", "label" => "Name", "value" => $name]); ?>
                     </div>
@@ -182,8 +182,9 @@ array_push($teams, ["" => "None"]);
     </div>
     <div id="players" style="display: none;" class="tab-target">
         <div style="margin-top: 20px">
+            <h3>Total Favorite Players: <?php echo count($favorite_players_ids); ?></h3>
             <form>
-                <div class="row">
+                <div class="row mt-4">
                     <div class="col">
                         <?php render_input(["name" => "name", "type" => "text", "label" => "Name", "value" => $name]); ?>
                     </div>

@@ -53,6 +53,22 @@ try {
     flash("There was an error fetching favorites", "danger");
 }
 
+$querycount = "SELECT COUNT(*) FROM favorite_teams";
+try {
+    $db = getDB();
+    $stmt = $db->prepare($querycount);
+    $stmt->execute();
+    $r = $stmt->fetch();
+    if ($r) {
+        $count = $r["COUNT(*)"];
+    } else {
+        $count = 0;
+    }
+} catch (PDOException $e) {
+    error_log("Error fetching favorite count: " . var_export($e, true));
+    flash("There was an error fetching favorite count", "danger");
+}
+
 $title = "User Favorites (" . count($results) . ")";
 
 $nonquery = "SELECT t.name AS 'Team Name', t.conference as 'Conference',t.id
@@ -86,6 +102,26 @@ try {
     error_log("Error fetching nonfavorites: " . var_export($e, true));
     flash("There was an error fetching nonfavorites", "danger");
 }
+
+$nonquerycount = "SELECT COUNT(*) FROM teams t WHERE NOT EXISTS (
+    SELECT 1
+    FROM favorite_teams ft 
+    WHERE ft.team_id = t.id
+)";
+try {
+    $db = getDB();
+    $stmt = $db->prepare($nonquerycount);
+    $stmt->execute();
+    $r = $stmt->fetch();
+    if ($r) {
+        $noncount = $r["COUNT(*)"];
+    } else {
+        $noncount = 0;
+    }
+} catch (PDOException $e) {
+    error_log("Error fetching nonfavorite count: " . var_export($e, true));
+    flash("There was an error fetching nonfavorite count", "danger");
+}
 $nontable = [
     "data" => $nonresults,
     "title" => "Non Favorites (" . count($nonresults) . ")",
@@ -106,7 +142,8 @@ $nontable = [
         </li>
     </ul>
     <div id="favorites" class="tab-target">
-        <div>
+        <div class="mt-3">
+            <h3>Total Favorites: <?php echo $count; ?></h3>
             <form>
                 <div class="row mt-3">
                     <div class="col">
@@ -168,6 +205,7 @@ $nontable = [
         </div>
     </div>
     <div id="nonfavorites" class="tab-target" style="display: none;">
+        <h3>Total Non Favorited Teams: <?php echo $noncount; ?></h3>
         <form>
             <div class="row mt-3">
                 <div class="col" style="">
