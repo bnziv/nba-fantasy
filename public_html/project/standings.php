@@ -98,7 +98,7 @@ $types = [
         </form>
     </div>
     <div class="row">
-        <div class="col-md-6 offset-md-3">
+        <div style="width:75%; margin: auto;">
             <?php render_table($table); ?>
         </div>
     </div>

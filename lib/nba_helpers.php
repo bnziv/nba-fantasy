@@ -119,6 +119,8 @@ function get_games_for_date($date) {
         $r = $stmt->fetchAll();
         if ($r) {
             $games = $r;
+        } else {
+            $games = [];
         }
     } catch (PDOException $e) {
         error_log("Error fetching games: " . var_export($e, true));
@@ -150,6 +152,103 @@ function get_games_for_date($date) {
             "Arena" => $game["arena"]];
     }, $games);
     return $games;
+}
+
+/**
+ * Get favorites for a user
+ * 
+ * @param string $type The type of favorite (team or player)
+ * @param int $userId The ID of the user
+ */
+function get_favorites($type, $userId) {
+    if ($type == "team") {
+        $query = "SELECT team_id FROM favorite_teams WHERE user_id = :userId";
+        $key = "team_id";
+    } else if ($type == "player") {
+        $query = "SELECT player_id FROM favorite_players WHERE user_id = :userId";
+        $key = "player_id";
+    } else {
+        return [];
+    }
+
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute([":userId" => $userId]);
+        $r = $stmt->fetchAll();
+        if ($r) {
+            return array_map(function ($v) use ($key) {
+                return $v[$key];
+            }, $r);
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching favorites: " . var_export($e, true));
+        flash("Error fetching favorites", "danger");
+    }
+    return [];
+}
+
+/**
+ * Update the standings and games
+ */
+function update_stats() {
+    $standings = fetch_standings();
+    try {
+        $opts = ["update_duplicate" => true];
+        $result = insert("standings", $standings, $opts);
+        if (!$result) {
+            error_log("Unhandled error" . var_export($result, true));
+        } else {
+            error_log("Updated standings");
+        }
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+    } catch (PDOException $e2) {
+        error_log("Database error" . var_export($e2, true));
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+    }
+    $games = fetch_games();
+    try {
+        $opts = ["update_duplicate" => true];
+        $result = insert("games", $games, $opts);
+        if (!$result) {
+            error_log("Unhandled error" . var_export($result, true));
+        } else {
+            error_log("Updated all games");
+        }
+    } catch (InvalidArgumentException $e1) {
+        error_log("Invalid arg" . var_export($e1, true));
+    } catch (PDOException $e2) {
+        error_log("Database error" . var_export($e2, true));
+    } catch (Exception $e3) {
+        error_log("Invalid data records" . var_export($e3, true));
+    }
+}
+
+/**
+ * Check if stats need to be updated (latest update is more than an hour ago)
+ */
+function check_update() {
+    $query = "SELECT modified FROM games ORDER BY modified DESC LIMIT 1";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($r) {
+            $last_modified = $r["modified"];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching last modified: " . var_export($e, true));
+        flash("Error fetching last modified", "danger");
+    }
+    $last_modified = new DateTime($last_modified, new DateTimeZone("UTC"));
+    $now = new DateTime("now", new DateTimeZone("UTC"));
+    $gap = $now->format("U") - $last_modified->format("U");
+    if ($gap > 3600) {
+        update_stats();
+    }
 }
 
 function card($data = array()) {
