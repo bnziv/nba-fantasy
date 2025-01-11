@@ -251,6 +251,91 @@ function check_update() {
     }
 }
 
+function check_fantasy_update() {
+    $query = "SELECT modified FROM player_latest_points ORDER BY modified DESC LIMIT 1";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($r) {
+            $last_modified = $r["modified"];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching last modified: " . var_export($e, true));
+        flash("Error fetching last modified", "danger");
+    }
+    $last_modified = new DateTime($last_modified, new DateTimeZone("UTC"));
+    $now = new DateTime("now", new DateTimeZone("UTC"));
+    $gap = $now->format("U") - $last_modified->format("U");
+    if ($gap > 86400) { #Update every day
+        update_fantasy();
+    }
+}
+
+function update_fantasy() {
+    # Get 75 API IDs for players in fantasy teams
+    $query = "SELECT DISTINCT player_id FROM (
+        SELECT guard_1_id AS player_id FROM fantasy_teams
+        UNION
+        SELECT guard_2_id AS player_id FROM fantasy_teams
+        UNION
+        SELECT forward_1_id AS player_id FROM fantasy_teams
+        UNION
+        SELECT forward_2_id AS player_id FROM fantasy_teams
+        UNION
+        SELECT center_id AS player_id FROM fantasy_teams
+    ) AS unique_players LIMIT 75;";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $r = $stmt->fetchAll();
+        if ($r) {
+            $player_ids = array_map(function ($v) {
+                return $v["player_id"];
+            }, $r);
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching players: " . var_export($e, true));
+        flash("Error fetching players", "danger");
+    }
+    $points = [];
+    foreach ($player_ids as $id) {
+        $api_id = get_player_api_id($id);
+        $points[$id] = get_player_last_points($api_id);
+    }
+    $query = "INSERT INTO player_latest_points (player_id, points) VALUES (:player_id, :points)
+    ON DUPLICATE KEY UPDATE points = :points;";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        foreach ($points as $player_id => $points) {
+            $stmt->execute([":player_id" => $player_id, ":points" => $points]);
+        }
+    } catch (PDOException $e) {
+        error_log("Error updating player points: " . var_export($e, true));
+        flash("Error updating player points", "danger");
+    }
+}
+
+function get_player_api_id($player_id) {
+    $query = "SELECT api_id FROM players WHERE id = :player_id";
+    try {
+        $db = getDB();
+        $stmt = $db->prepare($query);
+        $stmt->execute([":player_id" => $player_id]);
+        $r = $stmt->fetch();
+        if ($r) {
+            return $r["api_id"];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching player: " . var_export($e, true));
+        flash("Error fetching player", "danger");
+    }
+    return "";
+}
+
 function card($data = array()) {
     include(__DIR__. "/../partials/card.php");
 }

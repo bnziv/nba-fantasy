@@ -5,6 +5,8 @@ if (!is_logged_in()) {
     die(header("Location: $BASE_PATH" . "/home.php"));
 }
 
+check_fantasy_update();
+
 $query = "SELECT ft.name AS fantasy_team_name,
 CONCAT(g1.first_name, ' ', g1.last_name) AS guard_1_name,
 CONCAT(g2.first_name, ' ', g2.last_name) AS guard_2_name,
