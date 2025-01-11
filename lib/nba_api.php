@@ -180,3 +180,22 @@ function fetch_games() {
     }
     return $result;
 }
+
+/**
+ * Fetches player points in last played game from the API
+ */
+function get_player_last_points($player_id) {
+    $params = ["id" => $player_id, "season" => "2024"];
+    $endpoint = "https://api-nba-v1.p.rapidapi.com/players/statistics";
+    $isRapidAPI = true;
+    $rapidAPIHost = "api-nba-v1.p.rapidapi.com";
+    $result = get($endpoint, "API_KEY", $params, $isRapidAPI, $rapidAPIHost);
+    if (se($result, "status", 400, false) == 200 && isset($result["response"])) {
+        $result = json_decode($result["response"], true);
+        $result = $result["response"];
+        $result = array_values($result)[count($result) - 1];
+        return $result["points"];
+    } else {
+        return 0;
+    }
+}

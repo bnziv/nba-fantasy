@@ -47,6 +47,7 @@ session_start();
                             Fantasy
                         </a>
                         <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo get_url('fantasy_leaderboard.php'); ?>">Leaderboard</a></li>
                             <li><a class="dropdown-item" href="<?php echo get_url('create_fantasy_team.php'); ?>">Create Fantasy Team</a></li>
                         </ul>
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('profile.php'); ?>">Profile</a></li>
