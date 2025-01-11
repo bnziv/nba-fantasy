@@ -1,4 +1,4 @@
-<?php require_once(__DIR__ . "/../../lib/functions.php");
+<?php require_once(__DIR__ . "/../lib/functions.php");
 
 try {
     $db = getDB();

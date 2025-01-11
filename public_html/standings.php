@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/../../partials/nav.php");
+require(__DIR__ . "/../partials/nav.php");
 
 $conference = se($_GET, "conference", "", false);
 $division = se($_GET, "division", "", false);
@@ -105,5 +105,5 @@ $types = [
 </div>
 
 <?php
-require(__DIR__. "/../../partials/flash.php");
+require(__DIR__. "/../partials/flash.php");
 ?>

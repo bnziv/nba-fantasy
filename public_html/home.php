@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/../../partials/nav.php");
+require(__DIR__ . "/../partials/nav.php");
 ?>
 <?php
 
@@ -35,5 +35,5 @@ $yesterday_table = ["data" => $yesterday_games, "extra_classes" => "table-stripe
         </div>
     </div>
 <?php
-require(__DIR__ . "/../../partials/flash.php");
+require(__DIR__ . "/../partials/flash.php");
 ?>

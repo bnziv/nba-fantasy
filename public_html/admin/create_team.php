@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/../../../partials/nav.php");
+require(__DIR__ . "/../../partials/nav.php");
 //bv249 12/6
 if (!has_role("Admin")) {
     flash("You don't have permission to view this page", "warning");
@@ -220,5 +220,5 @@ $divisions = array_map(function ($v) {
 </script>
 
 <?php
-require_once(__DIR__ . "/../../../partials/flash.php");
+require_once(__DIR__ . "/../../partials/flash.php");
 ?>

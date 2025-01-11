@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . "/../../partials/nav.php");
+require_once(__DIR__ . "/../partials/nav.php");
 //is_logged_in(true);
 $user_id = -1;
 try {
@@ -237,5 +237,5 @@ $players_table = [
     }
 </script>
 <?php
-require_once(__DIR__ . "/../../partials/flash.php");
+require_once(__DIR__ . "/../partials/flash.php");
 ?>

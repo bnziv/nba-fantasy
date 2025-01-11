@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/../../partials/nav.php");
+require(__DIR__ . "/../partials/nav.php");
 ?>
 <div class="container-fluid">
     <form onsubmit="return validate(this)" method="POST">
@@ -110,4 +110,4 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
 }
 ?>
 <?php
-require(__DIR__ . "/../../partials/flash.php");
+require(__DIR__ . "/../partials/flash.php");

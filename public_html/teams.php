@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/../../partials/nav.php");
+require(__DIR__ . "/../partials/nav.php");
 
 $name = se($_GET, "name", "", false);
 $code = se($_GET, "code", "", false);
@@ -105,5 +105,5 @@ array_push($divisions, ["" => "None"]);
 </div>
 
 <?php
-require(__DIR__. "/../../partials/flash.php");
+require(__DIR__. "/../partials/flash.php");
 ?>

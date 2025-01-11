@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/../../../lib/functions.php");
+require(__DIR__ . "/../../lib/functions.php");
 session_start();
 if (!has_role("Admin")) {
     flash("You don't have permission to view this page", "warning");
