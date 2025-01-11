@@ -31,7 +31,7 @@ session_start();
 <script src="<?php echo get_url('helpers.js'); ?>"></script>
 <nav class="navbar navbar-expand-lg bg-success">
     <div class="container-fluid ">
-        <a class="navbar-brand" href="#">NBA Fantasy</a>
+        <a class="navbar-brand fs-3 fw-bold text-white" href="#">NBA Fantasy</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -42,6 +42,13 @@ session_start();
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('teams.php'); ?>">Teams</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('standings.php'); ?>">Standings</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('favorites.php'); ?>">Favorites</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Fantasy
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo get_url('create_fantasy_team.php'); ?>">Create Fantasy Team</a></li>
+                        </ul>
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('profile.php'); ?>">Profile</a></li>
                 <?php endif; ?>
                 <?php if (!is_logged_in()) : ?>
