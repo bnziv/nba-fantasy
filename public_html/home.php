@@ -7,7 +7,6 @@ if (is_logged_in(true)) {
     //comment this out if you don't want to see the session variables
     error_log("Session data: " . var_export($_SESSION, true));
 }
-check_update();
 
 //Get today's date in EST
 $date = new DateTime("now", new DateTimeZone("America/New_York"));
@@ -34,6 +33,17 @@ $yesterday_table = ["data" => $yesterday_games, "extra_classes" => "table-stripe
             <?php render_table($yesterday_table); ?>
         </div>
     </div>
+</div>
+<script>
+    function triggerUpdate() {
+        fetch('/update_data.php')
+        .then(response => response.json())
+        .then(data => console.log(data));
+    }
+    window.onload = function() {
+        triggerUpdate();
+    }
+</script>
 <?php
 require(__DIR__ . "/../partials/flash.php");
 ?>

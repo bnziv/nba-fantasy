@@ -238,6 +238,8 @@ function check_update() {
         $r = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($r) {
             $last_modified = $r["modified"];
+        } else {
+            $last_modified = "2000-01-01";
         }
     } catch (PDOException $e) {
         error_log("Error fetching last modified: " . var_export($e, true));
@@ -246,76 +248,104 @@ function check_update() {
     $last_modified = new DateTime($last_modified, new DateTimeZone("UTC"));
     $now = new DateTime("now", new DateTimeZone("UTC"));
     $gap = $now->format("U") - $last_modified->format("U");
-    if ($gap > 3600) {
+    if ($gap > 43200) { #Update every 12 hours
         update_stats();
     }
 }
 
 function check_fantasy_update() {
-    $query = "SELECT modified FROM player_latest_points ORDER BY modified DESC LIMIT 1";
+    // Get the oldest record from unique fantasy players
+    $query = "SELECT modified FROM (
+    SELECT guard_1_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT guard_2_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT forward_1_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT forward_2_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT center_id AS player_id FROM fantasy_teams
+    ) AS unique_players 
+    LEFT JOIN player_latest_points plp ON plp.player_id = unique_players.player_id
+    ORDER BY plp.modified ASC LIMIT 1";
     try {
         $db = getDB();
         $stmt = $db->prepare($query);
         $stmt->execute();
         $r = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($r) {
-            $last_modified = $r["modified"];
+        if (!$r["modified"]) {
+            $r = ["modified" => "2000-01-01"];
         }
+        $oldest_modified = new DateTime($r["modified"], new DateTimeZone("UTC"));
     } catch (PDOException $e) {
-        error_log("Error fetching last modified: " . var_export($e, true));
-        flash("Error fetching last modified", "danger");
+        error_log("Error fetching oldest modified: " . var_export($e, true));
+        flash("Error fetching oldest modified", "danger");
     }
-    $last_modified = new DateTime($last_modified, new DateTimeZone("UTC"));
+
     $now = new DateTime("now", new DateTimeZone("UTC"));
-    $gap = $now->format("U") - $last_modified->format("U");
-    if ($gap > 86400) { #Update every day
-        update_fantasy();
+    $gap = $now->format("U") - $oldest_modified->format("U");
+    if ($gap > 86400) {  // If oldest record is older than a day
+        // Get the latest record
+        $query = "SELECT modified FROM player_latest_points ORDER BY modified DESC LIMIT 1";
+        try {
+            $db = getDB();
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $r = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$r["modified"]) {
+                $r = ["modified" => "2000-01-01"];
+            }
+            $latest_modified = new DateTime($r["modified"], new DateTimeZone("UTC"));
+        } catch (PDOException $e) {
+            error_log("Error fetching latest modified: " . var_export($e, true));
+            flash("Error fetching latest modified", "danger");
+        }
+
+        $gap = $now->format("U") - $latest_modified->format("U");
+        if ($gap > 60) {  // If the latest record is older than 1 minute to avoid rate limits
+            update_fantasy();
+        }
     }
 }
 
 function update_fantasy() {
-    # Get 75 API IDs for players in fantasy teams
-    $query = "SELECT DISTINCT player_id FROM (
-        SELECT guard_1_id AS player_id FROM fantasy_teams
-        UNION
-        SELECT guard_2_id AS player_id FROM fantasy_teams
-        UNION
-        SELECT forward_1_id AS player_id FROM fantasy_teams
-        UNION
-        SELECT forward_2_id AS player_id FROM fantasy_teams
-        UNION
-        SELECT center_id AS player_id FROM fantasy_teams
-    ) AS unique_players LIMIT 75;";
+    // Get the 8 oldest records to update
+    $query = "SELECT p.id, p.api_id FROM (
+    SELECT guard_1_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT guard_2_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT forward_1_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT forward_2_id AS player_id FROM fantasy_teams
+    UNION
+    SELECT center_id AS player_id FROM fantasy_teams
+    ) AS unique_players 
+    JOIN players p ON p.id = unique_players.player_id
+    LEFT JOIN player_latest_points plp ON plp.player_id = p.id
+    ORDER BY plp.modified ASC LIMIT 8";
     try {
         $db = getDB();
         $stmt = $db->prepare($query);
         $stmt->execute();
-        $r = $stmt->fetchAll();
-        if ($r) {
-            $player_ids = array_map(function ($v) {
-                return $v["player_id"];
-            }, $r);
-        }
+        $players = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("Error fetching players: " . var_export($e, true));
         flash("Error fetching players", "danger");
     }
-    $points = [];
-    foreach ($player_ids as $id) {
-        $api_id = get_player_api_id($id);
-        $points[$id] = get_player_last_points($api_id);
-    }
-    $query = "INSERT INTO player_latest_points (player_id, points) VALUES (:player_id, :points)
-    ON DUPLICATE KEY UPDATE points = :points;";
-    try {
-        $db = getDB();
-        $stmt = $db->prepare($query);
-        foreach ($points as $player_id => $points) {
-            $stmt->execute([":player_id" => $player_id, ":points" => $points]);
+    foreach ($players as $player) {
+        $points = get_player_last_points($player["api_id"]); 
+        $query = "INSERT INTO player_latest_points (player_id, points) 
+        VALUES (:player_id, :points) 
+        ON DUPLICATE KEY UPDATE points = :points";
+        try {
+            $db = getDB();
+            $stmt = $db->prepare($query);
+            $stmt->execute([":player_id" => $player["id"], ":points" => $points]);
+        } catch (PDOException $e) {
+            error_log("Error updating player points: " . var_export($e, true));
+            flash("Error updating player points", "danger");
         }
-    } catch (PDOException $e) {
-        error_log("Error updating player points: " . var_export($e, true));
-        flash("Error updating player points", "danger");
     }
 }
 
